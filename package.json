@@ -1,0 +1,28 @@
+{
+  "name": "appointments_integration",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ericambiel/appointments_integration.git"
+  },
+  "keywords": [
+    "googlesheet",
+    "fluig",
+    "worksheet"
+  ],
+  "author": "Eric Ambiel",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ericambiel/appointments_integration/issues"
+  },
+  "homepage": "https://github.com/ericambiel/appointments_integration#readme",
+  "dependencies": {
+    "googleapis": "^39.2.0"
+  }
+}

@@ -102,3 +102,9 @@ dist
 
 # TernJS port file
 .tern-port
+
+#Others
+/.idea/*
+/client_secret_*
+credentials.json
+token.json
