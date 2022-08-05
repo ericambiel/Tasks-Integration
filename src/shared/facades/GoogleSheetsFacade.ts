@@ -1,9 +1,9 @@
 import IGoogleSheetsFacade from '@shared/facades/IGoogleSheetsFacade';
-import * as fs from 'fs';
 import { Credentials, OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
-import * as readline from 'readline';
-import * as Buffer from 'buffer';
+import { inject, injectable } from 'tsyringe';
+import FilesHandlerHelper from '@shared/helpers/FilesHandlerHelper';
+import PromptConsoleHelper from '@shared/helpers/PromptConsoleHelper';
 
 // const SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
 // const TOKEN_PATH = 'token.json';
@@ -35,24 +35,15 @@ type Option = {
   range: string;
 };
 
+@injectable()
 export default class GoogleSheetsFacade implements IGoogleSheetsFacade {
-  constructor(private options: Option) {}
-
-  async main() {
-    // Load client secrets from a local file.
-    const credentialsFileBuffer: Buffer = await readFile(
-      'credentials.json',
-    ).catch(e => {
-      throw new Error(`Error loading client secret file: ${e}`);
-    });
-
-    // Authorize a client with credentials, then call the Google Sheets API.
-    const authorization = await this.authorize(
-      JSON.parse(credentialsFileBuffer.toString()),
-    );
-
-    this.getSpreadSheetValues(authorization);
-  }
+  constructor(
+    private options: Option, // Stop here, how to pass this in creation of injection
+    @inject(FilesHandlerHelper)
+    private filesHandlerHelper: FilesHandlerHelper,
+    @inject(PromptConsoleHelper)
+    private promptConsoleHelper: PromptConsoleHelper, // TODO: Transfers responsibility to Service
+  ) {}
 
   /**
    * Create an OAuth2 client with the given credentials, and then execute the
@@ -72,7 +63,9 @@ export default class GoogleSheetsFacade implements IGoogleSheetsFacade {
     );
 
     // Load previously stored a token.
-    const tokenFileBuffer = await readFile(this.options.tokenPathFile);
+    const tokenFileBuffer = await this.filesHandlerHelper.readFile(
+      this.options.tokenPathFile,
+    );
 
     // Parse stored token
     token = JSON.parse(tokenFileBuffer.toString()); // TODO: Verify type of file, use JOY/Celebrate
@@ -104,7 +97,8 @@ export default class GoogleSheetsFacade implements IGoogleSheetsFacade {
     const authUrl = this.generateAuthUrl(oAuth2Client);
     console.log('Authorize this app by visiting this url: /n', authUrl);
 
-    const code: string = await promptQuestion(
+    // TODO: Transfers responsibility to Service
+    const code: string = await this.promptConsoleHelper.promptQuestion(
       'Enter the code from that page here: ',
     );
 
@@ -118,7 +112,10 @@ export default class GoogleSheetsFacade implements IGoogleSheetsFacade {
 
         if (token) {
           // Store the token to disk for later program executions
-          await writeFile(this.options.tokenPathFile, JSON.stringify(token));
+          await this.filesHandlerHelper.writeFile(
+            this.options.tokenPathFile,
+            JSON.stringify(token),
+          );
           resolve(token);
         }
 

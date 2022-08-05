@@ -1,7 +1,9 @@
 import readline from 'readline';
+import { singleton } from 'tsyringe';
 
+@singleton()
 export default class PromptConsoleHelper {
-  static async promptQuestion(question: string): Promise<string> {
+  async promptQuestion(question: string): Promise<string> {
     return new Promise<string>(resolve => {
       const rLine = readline.createInterface({
         input: process.stdin,
