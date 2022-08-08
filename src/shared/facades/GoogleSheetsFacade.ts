@@ -1,16 +1,17 @@
 import IGoogleSheetsFacade from '@shared/facades/IGoogleSheetsFacade';
 import { Credentials, OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
-import { inject, injectable } from 'tsyringe';
+import { container, inject, injectable } from 'tsyringe';
 import FilesHandlerHelper from '@shared/helpers/FilesHandlerHelper';
 import PromptConsoleHelper from '@shared/helpers/PromptConsoleHelper';
+import { randomUUID } from 'crypto';
 
 // const SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
 // const TOKEN_PATH = 'token.json';
 // const SPREAD_SHEET = '16UHClMZfSwXvDPECG1oerd-pfD-pWC5cugrotqq_TQQ';
 // const RANGE = 'Horas!A2:G';
 
-type GoogleCredential = {
+export type GoogleUserCredential = {
   web: {
     client_id: string;
     project_id: string;
@@ -23,7 +24,9 @@ type GoogleCredential = {
   };
 };
 
-type Option = {
+export type GoogleUserToken = Credentials;
+
+export type Option = {
   /**
    *  The file token.json stores the user's access and refresh tokens, and is
    *  created automatically when the authorization flow completes for the first time.
@@ -38,6 +41,7 @@ type Option = {
 @injectable()
 export default class GoogleSheetsFacade implements IGoogleSheetsFacade {
   constructor(
+    @inject(Object)
     private options: Option, // Stop here, how to pass this in creation of injection
     @inject(FilesHandlerHelper)
     private filesHandlerHelper: FilesHandlerHelper,
@@ -46,13 +50,13 @@ export default class GoogleSheetsFacade implements IGoogleSheetsFacade {
   ) {}
 
   /**
-   * Create an OAuth2 client with the given credentials, and then execute the
-   * given callback function.
+   * Create an OAuth2 client with the given credentials.
+   * P.S. if given only credentials need set credentials before with
+   * token before.
    * @param credentials The authorization client credentials.
-   * //@param {function} callback The callback to call with the authorized client.
    */
-  async authorize(credentials: GoogleCredential): Promise<OAuth2Client> {
-    let token: Credentials;
+  clientFactor(credentials: GoogleUserCredential): string {
+    const uuid = randomUUID();
     // eslint-disable-next-line camelcase
     const { client_secret, client_id, redirect_uris } = credentials.web;
     const oAuth2Client = new OAuth2Client(
@@ -62,48 +66,44 @@ export default class GoogleSheetsFacade implements IGoogleSheetsFacade {
       redirect_uris[0],
     );
 
-    // Load previously stored a token.
-    const tokenFileBuffer = await this.filesHandlerHelper.readFile(
-      this.options.tokenPathFile,
-    );
+    container.registerInstance<OAuth2Client>(uuid, oAuth2Client);
 
-    // Parse stored token
-    token = JSON.parse(tokenFileBuffer.toString()); // TODO: Verify type of file, use JOY/Celebrate
-
-    if (token === '') {
-      console.log('Generate a new token');
-      token = await this.getNewToken(oAuth2Client);
-    }
-
-    oAuth2Client.setCredentials(token);
-
-    return oAuth2Client;
+    return uuid;
   }
 
-  private generateAuthUrl(oAuth2Client: OAuth2Client): string {
-    return oAuth2Client.generateAuthUrl({
+  getAuthUrl(
+    oAuth2Client: OAuth2Client,
+    scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+  ): string {
+    const authUrl = oAuth2Client.generateAuthUrl({
       access_type: 'offline',
-      scope: this.options.scopes,
+      scope: scopes,
     });
+
+    console.log('Authorize this app by visiting this url: /n', authUrl);
+
+    return authUrl;
   }
 
   /**
    * Get and store new token after prompting for user authorization, and then
    * execute the given callback with the authorized OAuth2 client.
    * @param oAuth2Client The OAuth2 client to get token for.
-   * //@param {getEventsCallback} callback The callback for the authorized client.
+   * @param code Authorized code for get token
    */
-  async getNewToken(oAuth2Client: OAuth2Client): Promise<Credentials> {
-    const authUrl = this.generateAuthUrl(oAuth2Client);
-    console.log('Authorize this app by visiting this url: /n', authUrl);
+  async getNewToken(
+    oAuth2Client: OAuth2Client,
+    code: string,
+  ): Promise<GoogleUserToken> {
+    // const authUrl = this.generateAuthUrl(oAuth2Client, this.options);
 
-    // TODO: Transfers responsibility to Service
-    const code: string = await this.promptConsoleHelper.promptQuestion(
-      'Enter the code from that page here: ',
-    );
+    // // TODO: Transfers responsibility to Service
+    // const code: string = await this.promptConsoleHelper.promptQuestion(
+    //   'Enter the code from that page here: ',
+    // );
 
     // Generate new token
-    return new Promise<Credentials>((resolve, reject) => {
+    return new Promise<GoogleUserToken>((resolve, reject) => {
       oAuth2Client.getToken(code, async (err, token) => {
         if (err)
           reject(
@@ -130,19 +130,24 @@ export default class GoogleSheetsFacade implements IGoogleSheetsFacade {
    */
   getSpreadSheetValues(auth: OAuth2Client) {
     const sheets = google.sheets({ version: 'v4', auth: <never>auth }); // TODO: Type OAuth2Client doesn't work here
-    sheets.spreadsheets.values.get(
-      {
-        spreadsheetId: this.options.spreadsheetId,
-        range: this.options.range,
-      },
-      (err, res) => {
-        const rows = res?.data.values;
 
-        if (err) return console.log(`The API returned an error: ${err}`);
+    return new Promise((resolve, reject) => {
+      sheets.spreadsheets.values.get(
+        {
+          spreadsheetId: this.options.spreadsheetId,
+          range: this.options.range,
+        },
+        (err, res) => {
+          const rows = res?.data.values;
 
-        if (rows?.length) rows.forEach(row => console.log(`${row}`));
-        return console.log('No data found.');
-      },
-    );
+          if (err) reject(new Error(`The API returned an error: ${err})`));
+
+          // if (rows?.length) rows.forEach(row => console.log(`${row}`));
+          if (rows?.length) resolve(rows);
+
+          reject(new Error('No data found.'));
+        },
+      );
+    });
   }
 }
