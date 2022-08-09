@@ -1,36 +1,34 @@
 import { container, inject, injectable } from 'tsyringe';
-import GoogleSheetsFacade, {
-  GetSpreadSheetValuesOption,
+import GoogleServicesFacade, {
   GoogleServiceCredential,
-} from '@shared/facades/GoogleSheetsFacade';
+} from '@shared/facades/GoogleServicesFacade';
 import { Credentials, OAuth2Client } from 'google-auth-library';
 
-type GetSheetFromDocsServiceOption = {
+type AuthorizeGoogleUserServiceOption = {
   /**
    * instance ID of OAuth2Client
    */
   instanceId?: string;
   userToken?: Credentials;
   serviceCredentials: GoogleServiceCredential;
-  spreadsheet: GetSpreadSheetValuesOption;
 };
 
 @injectable()
-export default class GetSheetFromDocsService {
+export default class AuthorizeGoogleUserService {
   constructor(
-    @inject(GoogleSheetsFacade)
-    private googleSheet: GoogleSheetsFacade,
+    @inject(GoogleServicesFacade)
+    private googleSheet: GoogleServicesFacade,
   ) {}
 
   /**
-   * Authorize client with credentials
+   * Authorize client with given credentials
    * @param options
    */
-  async execute(options: GetSheetFromDocsServiceOption) {
-    const { serviceCredentials, spreadsheet, userToken } = options;
+  async execute(options: AuthorizeGoogleUserServiceOption) {
+    const { serviceCredentials, userToken } = options;
     let { instanceId } = options;
 
-    // Create instance if it doesn't exist
+    // Create client if it doesn't exist
     if (!instanceId)
       instanceId = this.googleSheet.clientFactor(serviceCredentials);
 
@@ -41,17 +39,22 @@ export default class GetSheetFromDocsService {
       console.log('Generate a new token');
 
       const url = this.googleSheet.getAuthUrl(oAuthClient, {
-        scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+        scopes: [
+          'https://www.googleapis.com/auth/spreadsheets.readonly',
+          'https://www.googleapis.com/auth/userinfo.profile',
+        ],
       });
 
       return { url, instanceId };
     }
 
-    // Else set loaded token
-    oAuthClient.setCredentials(userToken);
-
-    // Get all values from Sheet
-    return this.googleSheet.getSpreadSheetValues(oAuthClient, spreadsheet);
+    return this.googleSheet.verifyUserToken(userToken);
+    //
+    // // Set loaded token
+    // oAuthClient.setCredentials(userToken);
+    //
+    // // Get all values from Sheet
+    // return this.googleSheet.getSpreadSheetValues(oAuthClient, spreadsheet);
   }
 
   // TODO: Need todo ths function, verify if instance exists

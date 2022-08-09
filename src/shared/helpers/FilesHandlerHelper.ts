@@ -1,6 +1,32 @@
 import Buffer from 'buffer';
 import fs from 'fs';
-import { singleton } from 'tsyringe';
+import { container, singleton } from 'tsyringe';
+import { Credentials, TokenInfo } from 'google-auth-library';
+import {
+  GoogleServiceCredential,
+  Option,
+} from '@shared/facades/GoogleServicesFacade';
+
+type LoadCredentialsFilesOption = {
+  /** Path to credentials file */
+  credentialFilePath: string;
+  /**
+   *  The path to the user's access and refresh tokens. P.S it will be
+   *  created automatically when the authorization flow completes for the first time.
+   */
+  tokensPath: Option['tokensPath'];
+  /** A token that can be sent to a Google API */
+  accessToken: Credentials['access_token'];
+};
+
+export type SaveTokenOnDiskOptions = {
+  /**
+   *  The path to the user's access and refresh tokens. P.S it will be
+   *  created automatically when the authorization flow completes for the first time.
+   */
+  tokensPath: Option['tokensPath'];
+  newTokenInfoUser: TokenInfo & Credentials;
+};
 
 @singleton()
 export default class FilesHandlerHelper {
@@ -24,5 +50,46 @@ export default class FilesHandlerHelper {
     }).catch(err => {
       throw new Error(`Error in write to a file: ${err}`);
     });
+  }
+
+  /**
+   * Load Google Service Credential and User Token from disk
+   * @param options
+   */
+  async loadCredentialsFiles(options: LoadCredentialsFilesOption) {
+    const filesHandlerHelper = container.resolve(FilesHandlerHelper);
+    // Load client secrets from a local file.
+    const credentialsFileBuffer: Buffer = await filesHandlerHelper
+      .readFile(`${options.credentialFilePath}`) // TODO: Use path to verify correct S.O.
+      .catch((e: Error) => {
+        throw new Error(`Loading client secret file: ${e}`);
+      });
+
+    // Load previously stored a token.
+    const tokenFileBuffer = await filesHandlerHelper.readFile(
+      `${options.tokensPath}/token.json`,
+      // `${options.credentialFilePath}/${options.accessToken}.json`, // TODO: Use path to verify correct S.O.
+    );
+
+    // Parse stored token
+    const token: Credentials = JSON.parse(tokenFileBuffer.toString()); // TODO: Verify type of file, use JOY/Celebrate
+
+    // Parse stored credential
+    const serviceCredentials: GoogleServiceCredential = JSON.parse(
+      credentialsFileBuffer.toString(),
+    );
+
+    return { serviceCredentials, token };
+  }
+
+  /**
+   * Store the token to disk for later program executions
+   */
+  async saveTokenOnDisk(options: SaveTokenOnDiskOptions) {
+    const filesHandlerHelper = container.resolve(FilesHandlerHelper);
+    return filesHandlerHelper.writeFile(
+      `${options.tokensPath}/${options.newTokenInfoUser.user_id}.token.json`, // TODO: Apply Path resolve
+      JSON.stringify(options.newTokenInfoUser),
+    );
   }
 }

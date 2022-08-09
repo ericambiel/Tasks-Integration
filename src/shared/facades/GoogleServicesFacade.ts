@@ -1,5 +1,5 @@
 import IGoogleSheetsFacade from '@shared/facades/IGoogleSheetsFacade';
-import { Credentials, OAuth2Client } from 'google-auth-library';
+import { Credentials, OAuth2Client, TokenInfo } from 'google-auth-library';
 import { google } from 'googleapis';
 import { container, inject, singleton } from 'tsyringe';
 import FilesHandlerHelper from '@shared/helpers/FilesHandlerHelper';
@@ -45,15 +45,17 @@ export type GetSpreadSheetValuesOption = {
 
 export type GetAuthUrlOption = {
   /** @type {GenerateAuthUrlOpts.scope} */
-  scopes: GenerateAuthUrlOpts['scope'] &
-    ['https://www.googleapis.com/auth/spreadsheets.readonly'];
+  scopes:
+    | GenerateAuthUrlOpts['scope']
+    | [
+        'https://www.googleapis.com/auth/spreadsheets.readonly', // Need to access spreadsheet
+        'https://www.googleapis.com/auth/userinfo.profile', // Get same information from profile, like user_id
+      ];
 };
 
 @singleton()
-export default class GoogleSheetsFacade implements IGoogleSheetsFacade {
+export default class GoogleServicesFacade implements IGoogleSheetsFacade {
   constructor(
-    @inject('googleSheetsFacadeOptions')
-    private options: Option,
     @inject(FilesHandlerHelper)
     private filesHandlerHelper: FilesHandlerHelper,
     @inject(PromptConsoleHelper)
@@ -94,8 +96,6 @@ export default class GoogleSheetsFacade implements IGoogleSheetsFacade {
   }
 
   /**
-   * Get and store new token after prompting for user authorization, and then
-   * execute the given callback with the authorized OAuth2 client.
    * @param oAuth2Client The OAuth2 client to get token for.
    * @param code Authorized code for get token
    */
@@ -103,13 +103,6 @@ export default class GoogleSheetsFacade implements IGoogleSheetsFacade {
     oAuth2Client: OAuth2Client,
     code: string,
   ): Promise<Credentials> {
-    // const authUrl = this.generateAuthUrl(oAuth2Client, this.options);
-
-    // // TODO: Transfers responsibility to Service
-    // const code: string = await this.promptConsoleHelper.promptQuestion(
-    //   'Enter the code from that page here: ',
-    // );
-
     // Generate new token
     return new Promise<Credentials>((resolve, reject) => {
       oAuth2Client.getToken(code, async (err, token) => {
@@ -118,31 +111,30 @@ export default class GoogleSheetsFacade implements IGoogleSheetsFacade {
             new Error(`Error while trying to retrieve access token: ${err}`),
           );
 
-        if (token) {
-          // Store the token to disk for later program executions
-          await this.filesHandlerHelper.writeFile(
-            // eslint-disable-next-line no-underscore-dangle
-            `${this.options.tokensPath}\\${token.access_token}`, // TODO: Apply Path resolve
-            JSON.stringify(token),
-          );
-          resolve(token);
-        }
+        if (token) resolve(token);
 
         reject(new Error(`Token is null or undefined`));
       });
     });
   }
 
+  getMoreInformationToken(
+    oAuth2Client: OAuth2Client,
+    accessToken: string,
+  ): Promise<TokenInfo> {
+    return oAuth2Client.getTokenInfo(accessToken).then();
+  }
+
   /**
    * Prints values from spreadsheet:
-   * @param authClient The authenticated Google OAuth client.
+   * @param oAuth2Client The authenticated Google OAuth client.
    * @param options
    */
   getSpreadSheetValues(
-    authClient: OAuth2Client,
+    oAuth2Client: OAuth2Client,
     options: GetSpreadSheetValuesOption,
   ) {
-    const sheets = google.sheets({ version: 'v4', auth: <never>authClient }); // TODO: Type OAuth2Client doesn't work here
+    const sheets = google.sheets({ version: 'v4', auth: <never>oAuth2Client }); // TODO: Type OAuth2Client doesn't work here
 
     return new Promise((resolve, reject) => {
       sheets.spreadsheets.values.get(
@@ -162,5 +154,11 @@ export default class GoogleSheetsFacade implements IGoogleSheetsFacade {
         },
       );
     });
+  }
+
+  // TODO: Verify if token is valid. Need validate if a token is correct,
+  //  otherwise return a URL to generate a code to create a new token
+  verifyUserToken(userToken: Credentials) {
+    return userToken;
   }
 }
