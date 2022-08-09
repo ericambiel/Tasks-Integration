@@ -34,6 +34,10 @@ module.exports = {
       },
     ],
     'import/extensions': ['error', 'ignorePackages', { ts: 'never' }],
+    'import/no-extraneous-dependencies': [
+      'error',
+      { devDependencies: ['**/*.test.js', '**/*.spec.js', 'jest.config.*'] },
+    ],
   },
   settings: {
     'import/resolver': {

@@ -1,17 +1,15 @@
 import IGoogleSheetsFacade from '@shared/facades/IGoogleSheetsFacade';
 import { Credentials, OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
-import { container, inject, injectable } from 'tsyringe';
+import { container, inject, singleton } from 'tsyringe';
 import FilesHandlerHelper from '@shared/helpers/FilesHandlerHelper';
 import PromptConsoleHelper from '@shared/helpers/PromptConsoleHelper';
 import { randomUUID } from 'crypto';
+import { GenerateAuthUrlOpts } from 'google-auth-library/build/src/auth/oauth2client';
 
-// const SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
 // const TOKEN_PATH = 'token.json';
-// const SPREAD_SHEET = '16UHClMZfSwXvDPECG1oerd-pfD-pWC5cugrotqq_TQQ';
-// const RANGE = 'Horas!A2:G';
 
-export type GoogleUserCredential = {
+export type GoogleServiceCredential = {
   web: {
     client_id: string;
     project_id: string;
@@ -24,25 +22,38 @@ export type GoogleUserCredential = {
   };
 };
 
-export type GoogleUserToken = Credentials;
-
 export type Option = {
   /**
-   *  The file token.json stores the user's access and refresh tokens, and is
+   *  The path to the user's access and refresh tokens. P.S it will be
    *  created automatically when the authorization flow completes for the first time.
    */
-  tokenPathFile: string;
-  /** Define scope to use. P.S. If modifying these scopes, delete token file */
-  scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly' | string];
+  tokensPath: string;
+};
+
+export type GetSpreadSheetValuesOption = {
+  /**
+   *  Spread Sheet ID. You can get it from you google sheet URL
+   *  @example 16UHClMZfSwXvDPECG1oerd-pfD-pWC5cugrotqq_TQQ
+   */
   spreadsheetId: string;
+  /**
+   *  Range of columns and rows
+   *  @example Horas!A2:G
+   */
   range: string;
 };
 
-@injectable()
+export type GetAuthUrlOption = {
+  /** @type {GenerateAuthUrlOpts.scope} */
+  scopes: GenerateAuthUrlOpts['scope'] &
+    ['https://www.googleapis.com/auth/spreadsheets.readonly'];
+};
+
+@singleton()
 export default class GoogleSheetsFacade implements IGoogleSheetsFacade {
   constructor(
-    @inject(Object)
-    private options: Option, // Stop here, how to pass this in creation of injection
+    @inject('googleSheetsFacadeOptions')
+    private options: Option,
     @inject(FilesHandlerHelper)
     private filesHandlerHelper: FilesHandlerHelper,
     @inject(PromptConsoleHelper)
@@ -53,12 +64,12 @@ export default class GoogleSheetsFacade implements IGoogleSheetsFacade {
    * Create an OAuth2 client with the given credentials.
    * P.S. if given only credentials need set credentials before with
    * token before.
-   * @param credentials The authorization client credentials.
+   * @param serviceCredentials The authorization client credentials.
    */
-  clientFactor(credentials: GoogleUserCredential): string {
+  clientFactor(serviceCredentials: GoogleServiceCredential): string {
     const uuid = randomUUID();
     // eslint-disable-next-line camelcase
-    const { client_secret, client_id, redirect_uris } = credentials.web;
+    const { client_secret, client_id, redirect_uris } = serviceCredentials.web;
     const oAuth2Client = new OAuth2Client(
       client_id,
       client_secret,
@@ -71,13 +82,10 @@ export default class GoogleSheetsFacade implements IGoogleSheetsFacade {
     return uuid;
   }
 
-  getAuthUrl(
-    oAuth2Client: OAuth2Client,
-    scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
-  ): string {
+  getAuthUrl(oAuth2Client: OAuth2Client, options: GetAuthUrlOption): string {
     const authUrl = oAuth2Client.generateAuthUrl({
       access_type: 'offline',
-      scope: scopes,
+      scope: options.scopes,
     });
 
     console.log('Authorize this app by visiting this url: /n', authUrl);
@@ -94,7 +102,7 @@ export default class GoogleSheetsFacade implements IGoogleSheetsFacade {
   async getNewToken(
     oAuth2Client: OAuth2Client,
     code: string,
-  ): Promise<GoogleUserToken> {
+  ): Promise<Credentials> {
     // const authUrl = this.generateAuthUrl(oAuth2Client, this.options);
 
     // // TODO: Transfers responsibility to Service
@@ -103,7 +111,7 @@ export default class GoogleSheetsFacade implements IGoogleSheetsFacade {
     // );
 
     // Generate new token
-    return new Promise<GoogleUserToken>((resolve, reject) => {
+    return new Promise<Credentials>((resolve, reject) => {
       oAuth2Client.getToken(code, async (err, token) => {
         if (err)
           reject(
@@ -113,7 +121,8 @@ export default class GoogleSheetsFacade implements IGoogleSheetsFacade {
         if (token) {
           // Store the token to disk for later program executions
           await this.filesHandlerHelper.writeFile(
-            this.options.tokenPathFile,
+            // eslint-disable-next-line no-underscore-dangle
+            `${this.options.tokensPath}\\${token.access_token}`, // TODO: Apply Path resolve
             JSON.stringify(token),
           );
           resolve(token);
@@ -126,16 +135,20 @@ export default class GoogleSheetsFacade implements IGoogleSheetsFacade {
 
   /**
    * Prints values from spreadsheet:
-   * @param auth The authenticated Google OAuth client.
+   * @param authClient The authenticated Google OAuth client.
+   * @param options
    */
-  getSpreadSheetValues(auth: OAuth2Client) {
-    const sheets = google.sheets({ version: 'v4', auth: <never>auth }); // TODO: Type OAuth2Client doesn't work here
+  getSpreadSheetValues(
+    authClient: OAuth2Client,
+    options: GetSpreadSheetValuesOption,
+  ) {
+    const sheets = google.sheets({ version: 'v4', auth: <never>authClient }); // TODO: Type OAuth2Client doesn't work here
 
     return new Promise((resolve, reject) => {
       sheets.spreadsheets.values.get(
         {
-          spreadsheetId: this.options.spreadsheetId,
-          range: this.options.range,
+          spreadsheetId: options.spreadsheetId,
+          range: options.range,
         },
         (err, res) => {
           const rows = res?.data.values;

@@ -1,33 +1,18 @@
 // For a detailed explanation regarding each configuration property, visit:
 // https://jestjs.io/docs/en/configuration.html
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const fs = require('fs');
-
-const path = require('path');
-
-const { pathsToModuleNameMapper } = require('ts-jest/utils');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const dotEnvSafe = require('dotenv-safe');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { compilerOptions } = require('./tsconfig.json');
 
 // Loads environment variable globally in all tests.
+import dotEnvSafe from 'dotenv-safe';
+
+import { pathsToModuleNameMapper } from 'ts-jest';
+import type { Config } from '@jest/types';
+import { compilerOptions } from './tsconfig.json';
+
 dotEnvSafe.config({
   allowEmptyValues: true,
 });
 
-const blockList = ['.git'];
-const directory = 'dist';
-fs.readdirSync(directory).forEach(file => {
-  if (blockList.includes(file)) return;
-  if (fs.statSync(path.join(directory, file)).isFile()) {
-    fs.unlinkSync(path.join(directory, file));
-  } else {
-    fs.rmSync(path.join(directory, file), { recursive: true });
-  }
-});
-
-module.exports = {
+const config: Config.InitialOptions = {
   // All imported modules in your tests should be mocked automatically
   // automock: false,
 
@@ -203,3 +188,5 @@ module.exports = {
   // Whether to use watchman for backup crawling
   // watchman: true,
 };
+
+export default config;

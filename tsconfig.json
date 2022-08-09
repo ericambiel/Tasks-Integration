@@ -19,6 +19,7 @@
     "allowJs": true,
     "checkJs": true,
     "diagnostics": true,
+    "resolveJsonModule": true,
     "paths": {
       "@modules/*": [
         "modules/*"
