@@ -4,12 +4,9 @@ import { google } from 'googleapis';
 import { container, inject, singleton } from 'tsyringe';
 import FilesHandlerHelper from '@shared/helpers/FilesHandlerHelper';
 import PromptConsoleHelper from '@shared/helpers/PromptConsoleHelper';
-import { randomUUID } from 'crypto';
 import { GenerateAuthUrlOpts } from 'google-auth-library/build/src/auth/oauth2client';
 
-// const TOKEN_PATH = 'token.json';
-
-export type GoogleServiceCredential = {
+export type GoogleClientCredential = {
   web: {
     client_id: string;
     project_id: string;
@@ -17,17 +14,9 @@ export type GoogleServiceCredential = {
     token_uri: string;
     auth_provider_x509_cert_url: string;
     client_secret: string;
-    redirect_uris: [string];
-    javascript_origins: [string];
+    redirect_uris: string[];
+    javascript_origins: string[];
   };
-};
-
-export type Option = {
-  /**
-   *  The path to the user's access and refresh tokens. P.S it will be
-   *  created automatically when the authorization flow completes for the first time.
-   */
-  tokensPath: string;
 };
 
 export type GetSpreadSheetValuesOption = {
@@ -64,24 +53,24 @@ export default class GoogleServicesFacade implements IGoogleSheetsFacade {
 
   /**
    * Create an OAuth2 client with the given credentials.
-   * P.S. if given only credentials need set credentials before with
-   * token before.
+   * P.S. if given only client credentials need set token before.
    * @param serviceCredentials The authorization client credentials.
    */
-  clientFactor(serviceCredentials: GoogleServiceCredential): string {
-    const uuid = randomUUID();
-    // eslint-disable-next-line camelcase
-    const { client_secret, client_id, redirect_uris } = serviceCredentials.web;
+  clientFactor(serviceCredentials: GoogleClientCredential): string {
+    const {
+      client_secret: clientSecret,
+      client_id: clientId,
+      redirect_uris: redirectURIs,
+    } = serviceCredentials.web;
     const oAuth2Client = new OAuth2Client(
-      client_id,
-      client_secret,
-      // eslint-disable-next-line camelcase
-      redirect_uris[0],
+      clientSecret,
+      clientId,
+      redirectURIs[0],
     );
 
-    container.registerInstance<OAuth2Client>(uuid, oAuth2Client);
+    container.registerInstance<OAuth2Client>(clientId, oAuth2Client);
 
-    return uuid;
+    return clientId;
   }
 
   getAuthUrl(oAuth2Client: OAuth2Client, options: GetAuthUrlOption): string {

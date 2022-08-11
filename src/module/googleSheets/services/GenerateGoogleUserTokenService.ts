@@ -1,7 +1,8 @@
-import { container, inject, injectable } from 'tsyringe';
+import { inject, injectable } from 'tsyringe';
 import GoogleServicesFacade from '@shared/facades/GoogleServicesFacade';
 import { OAuth2Client } from 'google-auth-library';
 import FilesHandlerHelper from '@shared/helpers/FilesHandlerHelper';
+import InstanceManagerHelper from '@shared/helpers/InstanceManagerHelper';
 
 type GenerateGoogleUserTokenServiceOption = {
   /**
@@ -26,7 +27,8 @@ export default class GenerateGoogleUserTokenService {
   async execute(options: GenerateGoogleUserTokenServiceOption) {
     const { validationTokenCode, instanceId } = options;
 
-    const oAuthClient = this.verifyInstanceExists(instanceId);
+    const oAuthClient =
+      InstanceManagerHelper.getInstanceById<OAuth2Client>(instanceId);
 
     const newTokenUser = await this.googleSheet.getNewToken(
       oAuthClient,
@@ -49,10 +51,5 @@ export default class GenerateGoogleUserTokenService {
 
     // Get all values from Sheet
     return { oAuthClient, newTokenUser, tokenInfo };
-  }
-
-  // TODO: Need todo ths function, verify if instance exists
-  private verifyInstanceExists(instanceId: string) {
-    return container.resolve<OAuth2Client>(instanceId);
   }
 }

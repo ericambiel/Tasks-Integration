@@ -1,35 +1,11 @@
 import Buffer from 'buffer';
 import fs from 'fs';
-import { container, singleton } from 'tsyringe';
-import { Credentials, TokenInfo } from 'google-auth-library';
-import {
-  GoogleServiceCredential,
-  Option,
-} from '@shared/facades/GoogleServicesFacade';
-
-type LoadCredentialsFilesOption = {
-  /** Path to credentials file */
-  credentialFilePath: string;
-  /**
-   *  The path to the user's access and refresh tokens. P.S it will be
-   *  created automatically when the authorization flow completes for the first time.
-   */
-  tokensPath: Option['tokensPath'];
-  /** A token that can be sent to a Google API */
-  accessToken: Credentials['access_token'];
-};
-
-export type SaveTokenOnDiskOptions = {
-  /**
-   *  The path to the user's access and refresh tokens. P.S it will be
-   *  created automatically when the authorization flow completes for the first time.
-   */
-  tokensPath: Option['tokensPath'];
-  newTokenInfoUser: TokenInfo & Credentials;
-};
+import { singleton } from 'tsyringe';
+import path from 'path';
 
 @singleton()
 export default class FilesHandlerHelper {
+  // TODO: Use path to verify correct S.O.
   async readFile(filePath: string): Promise<Buffer> {
     return new Promise<Buffer>((resolve, reject) => {
       fs.readFile(filePath, (err, data) => {
@@ -40,6 +16,18 @@ export default class FilesHandlerHelper {
     });
   }
 
+  // TODO: Use path to verify correct S.O.
+  async readDir(filePath: string): Promise<string[]> {
+    return new Promise<string[]>((resolve, reject) => {
+      fs.readdir(filePath, (err, files) => {
+        if (err) reject(err);
+        console.log(`Reading file: ${filePath}`);
+        resolve(files);
+      });
+    });
+  }
+
+  // TODO: Use path to verify correct S.O.
   async writeFile(filePath: string, data: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       fs.writeFile(filePath, data, err => {
@@ -52,44 +40,23 @@ export default class FilesHandlerHelper {
     });
   }
 
-  /**
-   * Load Google Service Credential and User Token from disk
-   * @param options
-   */
-  async loadCredentialsFiles(options: LoadCredentialsFilesOption) {
-    const filesHandlerHelper = container.resolve(FilesHandlerHelper);
-    // Load client secrets from a local file.
-    const credentialsFileBuffer: Buffer = await filesHandlerHelper
-      .readFile(`${options.credentialFilePath}`) // TODO: Use path to verify correct S.O.
-      .catch((e: Error) => {
-        throw new Error(`Loading client secret file: ${e}`);
-      });
+  // TODO: Use path to verify correct S.O.
+  async readJSONFilesInDir(filePath: string) {
+    // Looking for files in directory
+    const filesPath: string[] = await this.readDir(filePath);
 
-    // Load previously stored a token.
-    const tokenFileBuffer = await filesHandlerHelper.readFile(
-      `${options.tokensPath}/token.json`,
-      // `${options.credentialFilePath}/${options.accessToken}.json`, // TODO: Use path to verify correct S.O.
-    );
+    // Filter only json files
+    const filteredJSONFilesPath = filesPath
+      .filter(nameFile => path.extname(nameFile) === '.json')
+      .map(nameFile => path.join(filePath, nameFile));
 
-    // Parse stored token
-    const token: Credentials = JSON.parse(tokenFileBuffer.toString()); // TODO: Verify type of file, use JOY/Celebrate
-
-    // Parse stored credential
-    const serviceCredentials: GoogleServiceCredential = JSON.parse(
-      credentialsFileBuffer.toString(),
-    );
-
-    return { serviceCredentials, token };
-  }
-
-  /**
-   * Store the token to disk for later program executions
-   */
-  async saveTokenOnDisk(options: SaveTokenOnDiskOptions) {
-    const filesHandlerHelper = container.resolve(FilesHandlerHelper);
-    return filesHandlerHelper.writeFile(
-      `${options.tokensPath}/${options.newTokenInfoUser.user_id}.token.json`, // TODO: Apply Path resolve
-      JSON.stringify(options.newTokenInfoUser),
+    return Promise.all(
+      filteredJSONFilesPath.map(filterJSONFilePath =>
+        // Read files and convert to JSON to Object
+        this.readFile(filterJSONFilePath).then(data =>
+          JSON.parse(data.toString()),
+        ),
+      ),
     );
   }
 }

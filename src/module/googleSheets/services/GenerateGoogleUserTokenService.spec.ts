@@ -1,23 +1,25 @@
 import 'reflect-metadata';
 import { container } from 'tsyringe';
 import GoogleServicesFacade, {
-  GoogleServiceCredential,
+  GoogleClientCredential,
 } from '@shared/facades/GoogleServicesFacade';
 
-import FilesHandlerHelper, {
-  SaveTokenOnDiskOptions,
-} from '@shared/helpers/FilesHandlerHelper';
 import GenerateGoogleUserTokenService from './GenerateGoogleUserTokenService';
+import {
+  IGoogleUserRepository,
+  UserTokenInfo,
+} from '../infra/local/repositories/IGoogleUserRepository';
+import GoogleUserRepository from '../infra/local/repositories/GoogleUserRepository';
 
 describe('Unit test - GenerateGoogleUserTokenService.spec.ts', () => {
   const validationTokenCode =
-    '4/0AdQt8qj91Q4duzQauMWOF0WIGr0SV18QHwU_tCZJjDFgmt7OvqZgNR3GmOIZTjX3gEt4Dg';
+    '4/0AdQt8qhsSvTsfjEXyzdlhjuX1P-a25vrKWwB4aZlO4GA-Lz0uhVONBbxwl3NgQf_dhXVVA';
   let instanceId: string;
   let generateGoogleUserTokenService: GenerateGoogleUserTokenService;
-  let serviceCredentials: GoogleServiceCredential;
-  let filesHandlerHelper: FilesHandlerHelper;
+  let serviceCredentials: GoogleClientCredential;
   let googleServices: GoogleServicesFacade;
-  let newTokenInfoUser: SaveTokenOnDiskOptions['newTokenInfoUser'];
+  let newTokenInfoUser: UserTokenInfo;
+  let userRepository: IGoogleUserRepository;
 
   beforeAll(async () => {
     serviceCredentials = await import('../../../misc/credentials.json').then();
@@ -25,7 +27,8 @@ describe('Unit test - GenerateGoogleUserTokenService.spec.ts', () => {
       GenerateGoogleUserTokenService,
     );
     googleServices = container.resolve(GoogleServicesFacade);
-    filesHandlerHelper = container.resolve(FilesHandlerHelper);
+    userRepository =
+      container.resolve<IGoogleUserRepository>(GoogleUserRepository);
 
     instanceId = googleServices.clientFactor(serviceCredentials);
   });
@@ -36,13 +39,10 @@ describe('Unit test - GenerateGoogleUserTokenService.spec.ts', () => {
         instanceId,
         validationTokenCode,
       });
-    newTokenInfoUser = { ...newTokenUser, ...tokenInfo };
+    newTokenInfoUser = { ...newTokenUser, tokenInfo };
   });
 
   it('Should be possible save new user token', async () => {
-    await filesHandlerHelper.saveTokenOnDisk({
-      tokensPath: 'src/misc',
-      newTokenInfoUser,
-    });
+    await userRepository.save(newTokenInfoUser);
   });
 });
