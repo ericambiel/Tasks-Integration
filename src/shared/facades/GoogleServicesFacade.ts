@@ -56,7 +56,7 @@ export default class GoogleServicesFacade implements IGoogleSheetsFacade {
    * P.S. if given only client credentials need set token before.
    * @param serviceCredentials The authorization client credentials.
    */
-  clientFactor(serviceCredentials: GoogleClientCredential): string {
+  clientFactor(serviceCredentials: GoogleClientCredential): OAuth2Client {
     const {
       client_secret: clientSecret,
       client_id: clientId,
@@ -70,7 +70,7 @@ export default class GoogleServicesFacade implements IGoogleSheetsFacade {
 
     container.registerInstance<OAuth2Client>(clientId, oAuth2Client);
 
-    return clientId;
+    return oAuth2Client;
   }
 
   getAuthUrl(oAuth2Client: OAuth2Client, options: GetAuthUrlOption): string {
@@ -87,6 +87,7 @@ export default class GoogleServicesFacade implements IGoogleSheetsFacade {
   }
 
   /**
+   * Get user token given client
    * @param oAuth2Client The OAuth2 client to get token for.
    * @param code Authorized code for get token
    */
@@ -109,10 +110,15 @@ export default class GoogleServicesFacade implements IGoogleSheetsFacade {
     });
   }
 
+  /**
+   * Get more information given a client authenticated with user token
+   * @param oAuth2Client
+   * @param accessToken
+   */
   getTokenInformation(
     oAuth2Client: OAuth2Client,
     accessToken: string,
-  ): Promise<UserTokenInfo['tokenInfo']> {
+  ): Promise<UserTokenInfo['token_info']> {
     return oAuth2Client.getTokenInfo(accessToken).then();
   }
 

@@ -3,7 +3,7 @@ import { container } from 'tsyringe';
 import { GoogleClientCredential } from '@shared/facades/GoogleServicesFacade';
 
 import { Credentials } from 'google-auth-library';
-import AuthorizeGoogleUserService from './AuthorizeGoogleUserService';
+import AuthorizeGoogleClientServer from './AuthorizeGoogleClientServer';
 import { IGoogleClientRepository } from '../infra/local/repositories/IGoogleClientRepository';
 import GoogleClientRepository from '../infra/local/repositories/GoogleClientRepository';
 import { IGoogleUserRepository } from '../infra/local/repositories/IGoogleUserRepository';
@@ -28,7 +28,7 @@ describe('Unit test - AuthorizeGoogleUserService.ts', () => {
 
   let repositoryClient: IGoogleClientRepository;
   let repositoryUser: IGoogleUserRepository;
-  let serviceAuth: AuthorizeGoogleUserService;
+  let serviceAuth: AuthorizeGoogleClientServer;
 
   beforeAll(async () => {
     container.register<string>('clientCredentialFilePath', {
@@ -45,7 +45,7 @@ describe('Unit test - AuthorizeGoogleUserService.ts', () => {
       GoogleUserRepository,
     );
 
-    serviceAuth = container.resolve(AuthorizeGoogleUserService);
+    serviceAuth = container.resolve(AuthorizeGoogleClientServer);
   });
 
   it('Should be possible return authorization for Google User if token not informed', async () => {

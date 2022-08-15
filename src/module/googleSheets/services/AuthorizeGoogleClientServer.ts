@@ -1,24 +1,29 @@
 import { inject, injectable } from 'tsyringe';
 import GoogleServicesFacade from '@shared/facades/GoogleServicesFacade';
-import { Credentials } from 'google-auth-library';
+import { Credentials, OAuth2Client } from 'google-auth-library';
 import GoogleClientRepository from '../infra/local/repositories/GoogleClientRepository';
 import { IGoogleClientRepository } from '../infra/local/repositories/IGoogleClientRepository';
 
-type AuthorizeGoogleUserServiceOption = {
+type AuthorizeGoogleClientServerOption = {
   /**
    * client ID of OAuth2Client
    */
   clientId: string;
   userToken?: Credentials;
-  // serviceCredentials: GoogleClientCredential;
 };
 
 @injectable()
-export default class AuthorizeGoogleUserService {
+export default class AuthorizeGoogleClientServer {
   private readonly SCOPES = [
     'https://www.googleapis.com/auth/userinfo.profile',
     'https://www.googleapis.com/auth/spreadsheets.readonly',
   ];
+
+  private readonly getAuthUrl = (oAuthClient: OAuth2Client) =>
+    this.googleSheet.getAuthUrl(oAuthClient, {
+      askPermission: true,
+      scopes: this.SCOPES,
+    });
 
   constructor(
     @inject(GoogleServicesFacade)
@@ -28,15 +33,16 @@ export default class AuthorizeGoogleUserService {
   ) {}
 
   /**
-   * Authorize client with given credentials
+   * Try to authorize client server with user token or return URL to authorize client server.
    * @param options
+   * @return {Promise<string | OAuth2Client>} Instance of OAuth2Client or URL to authorize client server to access user.
+   * @author Eric Ambiel
+   * @throws Case something wrong return URL to authorize client server to access user.
+   *
    */
-  async execute(options: AuthorizeGoogleUserServiceOption) {
-    // TODO: Move to a Service that create clients in initialization of API
-    // Create client if it doesn't exist
-    // if (!instanceId)
-    //   instanceId = this.googleSheet.clientFactor(serviceCredentials);
-
+  async execute(
+    options: AuthorizeGoogleClientServerOption,
+  ): Promise<string | OAuth2Client> {
     const oAuthClient = this.googleClientRepository.findById(options.clientId);
 
     try {
@@ -50,16 +56,10 @@ export default class AuthorizeGoogleUserService {
       );
 
       // If token doesn't informed return an authorization URL token
-      return this.googleSheet.getAuthUrl(oAuthClient, {
-        askPermission: true,
-        scopes: this.SCOPES,
-      });
+      return this.getAuthUrl(oAuthClient);
     } catch (err) {
       console.log(`Stored user token is wrong, need re-authentication: ${err}`);
-      return this.googleSheet.getAuthUrl(oAuthClient, {
-        askPermission: true,
-        scopes: this.SCOPES,
-      });
+      return this.getAuthUrl(oAuthClient);
     }
   }
 }

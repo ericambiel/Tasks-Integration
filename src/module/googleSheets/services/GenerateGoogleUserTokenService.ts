@@ -1,8 +1,8 @@
 import { inject, injectable } from 'tsyringe';
 import GoogleServicesFacade from '@shared/facades/GoogleServicesFacade';
 import { OAuth2Client } from 'google-auth-library';
-import FilesHandlerHelper from '@shared/helpers/FilesHandlerHelper';
 import InstanceManagerHelper from '@shared/helpers/InstanceManagerHelper';
+import GoogleUserRepository from '../infra/local/repositories/GoogleUserRepository';
 
 type GenerateGoogleUserTokenServiceOption = {
   /**
@@ -20,8 +20,8 @@ export default class GenerateGoogleUserTokenService {
   constructor(
     @inject(GoogleServicesFacade)
     private googleSheet: GoogleServicesFacade,
-    @inject(FilesHandlerHelper)
-    private filesHandlerHelper: FilesHandlerHelper,
+    @inject(GoogleUserRepository)
+    private repository: GoogleUserRepository,
   ) {}
 
   async execute(options: GenerateGoogleUserTokenServiceOption) {
@@ -49,7 +49,9 @@ export default class GenerateGoogleUserTokenService {
     // Set token to client
     oAuthClient.setCredentials(newTokenUser);
 
-    // Get all values from Sheet
-    return { oAuthClient, newTokenUser, tokenInfo };
+    // Save token on disc
+    this.repository.save({ ...newTokenUser, token_info: tokenInfo });
+
+    return oAuthClient;
   }
 }
