@@ -1,18 +1,29 @@
 import { TokenInfo } from 'google-auth-library';
 import { inject, singleton } from 'tsyringe';
 import FilesHandlerHelper from '@shared/helpers/FilesHandlerHelper';
+import { EventEmitter } from 'events';
 import { IGoogleUserRepository, UserTokenInfo } from './IGoogleUserRepository';
+
+const eventEmitter = new EventEmitter();
+
+// TODO: create a class to put all events there, call this class in begin of initialization server
+eventEmitter.on('loadUsersTokenFiles', () =>
+  console.log('All users token files was loaded.'),
+);
 
 @singleton<IGoogleUserRepository>()
 export default class GoogleUserRepository implements IGoogleUserRepository {
+  private userTokenInfo: UserTokenInfo[];
+
   constructor(
     @inject('tokensPath')
     private tokensPath: string,
     @inject(FilesHandlerHelper)
     private fileHandler: FilesHandlerHelper,
-    private userTokenInfo: UserTokenInfo[], // private clientCredential: GoogleClientCredential,
   ) {
-    this.loadUsersTokenFiles(tokensPath).then();
+    this.loadUsersTokenFiles(tokensPath).then(() => {
+      eventEmitter.emit('loadUsersTokenFiles');
+    });
   }
 
   /**

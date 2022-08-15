@@ -1,46 +1,78 @@
 import 'reflect-metadata';
 import { container } from 'tsyringe';
-import { GoogleServiceCredential } from '@shared/facades/GoogleServicesFacade';
+import { GoogleClientCredential } from '@shared/facades/GoogleServicesFacade';
 
 import { Credentials } from 'google-auth-library';
-import FilesHandlerHelper from '@shared/helpers/FilesHandlerHelper';
 import AuthorizeGoogleUserService from './AuthorizeGoogleUserService';
+import { IGoogleClientRepository } from '../infra/local/repositories/IGoogleClientRepository';
+import GoogleClientRepository from '../infra/local/repositories/GoogleClientRepository';
+import { IGoogleUserRepository } from '../infra/local/repositories/IGoogleUserRepository';
+import GoogleUserRepository from '../infra/local/repositories/GoogleUserRepository';
 
 describe('Unit test - AuthorizeGoogleUserService.ts', () => {
-  let authorizeGoogleUserService: AuthorizeGoogleUserService;
-  let serviceCredentials: GoogleServiceCredential;
-  let filesHandlerHelper: FilesHandlerHelper;
-  let userToken: Credentials;
+  // TODO: Export o helper
+  /** HTTP/HTTPs expression validation */
+  const expression =
+    /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.\S{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.\S{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.\S{2,}|www\.[a-zA-Z0-9]+\.\S{2,})/gi;
+  const regex = new RegExp(expression);
+
+  // TODO: Export o helper
+  /* Simulate event emitter, in real scenario server wait for load files called by event */
+  const sleep = (mSeconds: number) =>
+    new Promise(resolve => {
+      setTimeout(resolve, mSeconds);
+    });
+
+  let clientsCredential: GoogleClientCredential[];
+  let usersToken: Credentials[];
+
+  let repositoryClient: IGoogleClientRepository;
+  let repositoryUser: IGoogleUserRepository;
+  let serviceAuth: AuthorizeGoogleUserService;
 
   beforeAll(async () => {
-    authorizeGoogleUserService = container.resolve(AuthorizeGoogleUserService);
-    filesHandlerHelper = container.resolve(FilesHandlerHelper);
-
-    const loadedCredentials = await filesHandlerHelper.loadCredentialsFiles({
-      credentialFilePath: 'src/misc/credentials.json', // TODO: Use path to check correct OS directory
-      tokensPath: 'src/misc', // TODO: Use path to check correct OS directory
-      accessToken: await import('../../../misc/token.json').then(
-        token => token.access_token,
-      ),
+    container.register<string>('clientCredentialFilePath', {
+      useValue: 'src/misc/clients',
+    });
+    container.register<string>('tokensPath', {
+      useValue: 'src/misc/tokens',
     });
 
-    // spreadsheet: {
-    //   spreadsheetId: '16UHClMZfSwXvDPECG1oerd-pfD-pWC5cugrotqq_TQQ',
-    //       range: 'Horas!A2:G',
-    // }
+    repositoryClient = await container.resolve<IGoogleClientRepository>(
+      GoogleClientRepository,
+    );
+    repositoryUser = await container.resolve<IGoogleUserRepository>(
+      GoogleUserRepository,
+    );
 
-    serviceCredentials = loadedCredentials.serviceCredentials;
-    userToken = loadedCredentials.token;
+    serviceAuth = container.resolve(AuthorizeGoogleUserService);
   });
 
-  it('Should be possible return authorize a Google User', async () => {
-    const spreadsheet = await authorizeGoogleUserService.execute({
-      serviceCredentials,
-      userToken,
+  it('Should be possible return authorization for Google User if token not informed', async () => {
+    await sleep(50);
+
+    clientsCredential = repositoryClient.list();
+
+    const uRL: string = <string>await serviceAuth.execute({
+      clientId: clientsCredential[0].web.client_id,
     });
 
-    // TODO: need to complete test
+    // Match if uRL is a URL
+    expect(uRL.match(regex)).toContain(uRL);
+  });
 
-    console.log(spreadsheet);
+  it('Should be possible return authorization for Google User if stored token is wrong', async () => {
+    await sleep(50);
+
+    clientsCredential = repositoryClient.list();
+    usersToken = repositoryUser.list();
+
+    const uRL: string = <string>await serviceAuth.execute({
+      clientId: clientsCredential[0].web.client_id,
+      userToken: usersToken[0],
+    });
+
+    // Match if uRL is a URL
+    expect(uRL.match(regex)).toContain(uRL);
   });
 });

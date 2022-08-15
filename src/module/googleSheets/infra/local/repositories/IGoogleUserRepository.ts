@@ -1,7 +1,7 @@
 import { Credentials, TokenInfo } from 'google-auth-library';
 
 export type UserTokenInfo = Credentials & {
-  tokenInfo: TokenInfo;
+  tokenInfo: TokenInfo & { exp: string };
 };
 
 export interface IGoogleUserRepository {

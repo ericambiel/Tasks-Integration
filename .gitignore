@@ -108,5 +108,5 @@ package-lock.json
 .history
 .idea
 client_secret_*
-src/misc/credentials.json
-src/misc/token.json
+src/misc/clients/*.googleusercontent.com.json
+src/misc/tokens/*.token.json

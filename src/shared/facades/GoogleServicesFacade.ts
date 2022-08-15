@@ -1,10 +1,10 @@
 import IGoogleSheetsFacade from '@shared/facades/IGoogleSheetsFacade';
-import { Credentials, OAuth2Client, TokenInfo } from 'google-auth-library';
+import { Credentials, OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
 import { container, inject, singleton } from 'tsyringe';
 import FilesHandlerHelper from '@shared/helpers/FilesHandlerHelper';
-import PromptConsoleHelper from '@shared/helpers/PromptConsoleHelper';
 import { GenerateAuthUrlOpts } from 'google-auth-library/build/src/auth/oauth2client';
+import { UserTokenInfo } from '../../module/googleSheets/infra/local/repositories/IGoogleUserRepository';
 
 export type GoogleClientCredential = {
   web: {
@@ -40,6 +40,8 @@ export type GetAuthUrlOption = {
         'https://www.googleapis.com/auth/spreadsheets.readonly', // Need to access spreadsheet
         'https://www.googleapis.com/auth/userinfo.profile', // Get same information from profile, like user_id
       ];
+  /** Prompt permission even if had it already, useful to get "refresh_token" again */
+  askPermission?: true;
 };
 
 @singleton()
@@ -47,8 +49,6 @@ export default class GoogleServicesFacade implements IGoogleSheetsFacade {
   constructor(
     @inject(FilesHandlerHelper)
     private filesHandlerHelper: FilesHandlerHelper,
-    @inject(PromptConsoleHelper)
-    private promptConsoleHelper: PromptConsoleHelper, // TODO: Transfers responsibility to Service
   ) {}
 
   /**
@@ -63,8 +63,8 @@ export default class GoogleServicesFacade implements IGoogleSheetsFacade {
       redirect_uris: redirectURIs,
     } = serviceCredentials.web;
     const oAuth2Client = new OAuth2Client(
-      clientSecret,
       clientId,
+      clientSecret,
       redirectURIs[0],
     );
 
@@ -75,11 +75,13 @@ export default class GoogleServicesFacade implements IGoogleSheetsFacade {
 
   getAuthUrl(oAuth2Client: OAuth2Client, options: GetAuthUrlOption): string {
     const authUrl = oAuth2Client.generateAuthUrl({
-      access_type: 'offline',
       scope: options.scopes,
+      prompt: options.askPermission ? 'consent' : undefined, // 'consent' prompt permissions and get refresh_token again,
+      access_type: 'offline',
+      include_granted_scopes: true, // Enable incremental authorization. Recommended as a best practice.
     });
 
-    console.log('Authorize this app by visiting this url: /n', authUrl);
+    console.log('Authorize this app by visiting this url: \n', authUrl);
 
     return authUrl;
   }
@@ -107,10 +109,10 @@ export default class GoogleServicesFacade implements IGoogleSheetsFacade {
     });
   }
 
-  getMoreInformationToken(
+  getTokenInformation(
     oAuth2Client: OAuth2Client,
     accessToken: string,
-  ): Promise<TokenInfo> {
+  ): Promise<UserTokenInfo['tokenInfo']> {
     return oAuth2Client.getTokenInfo(accessToken).then();
   }
 
@@ -143,11 +145,5 @@ export default class GoogleServicesFacade implements IGoogleSheetsFacade {
         },
       );
     });
-  }
-
-  // TODO: Verify if token is valid. Need validate if a token is correct,
-  //  otherwise return a URL to generate a code to create a new token
-  verifyUserToken(userToken: Credentials) {
-    return userToken;
   }
 }

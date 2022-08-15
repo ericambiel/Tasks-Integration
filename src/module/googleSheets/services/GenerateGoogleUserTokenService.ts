@@ -41,7 +41,7 @@ export default class GenerateGoogleUserTokenService {
       );
 
     // Get more information from user giving a token
-    const tokenInfo = await this.googleSheet.getMoreInformationToken(
+    const tokenInfo = await this.googleSheet.getTokenInformation(
       oAuthClient,
       newTokenUser.access_token,
     );

@@ -1,28 +1,28 @@
 import { inject, injectable } from 'tsyringe';
 import GoogleServicesFacade from '@shared/facades/GoogleServicesFacade';
-import { Credentials, OAuth2Client } from 'google-auth-library';
-import InstanceManagerHelper from '@shared/helpers/InstanceManagerHelper';
-import GoogleUserRepository from '../infra/local/repositories/GoogleUserRepository';
-import { IGoogleUserRepository } from '../infra/local/repositories/IGoogleUserRepository';
+import { Credentials } from 'google-auth-library';
 import GoogleClientRepository from '../infra/local/repositories/GoogleClientRepository';
 import { IGoogleClientRepository } from '../infra/local/repositories/IGoogleClientRepository';
 
 type AuthorizeGoogleUserServiceOption = {
   /**
-   * instance ID of OAuth2Client
+   * client ID of OAuth2Client
    */
-  instanceId: string;
+  clientId: string;
   userToken?: Credentials;
   // serviceCredentials: GoogleClientCredential;
 };
 
 @injectable()
 export default class AuthorizeGoogleUserService {
+  private readonly SCOPES = [
+    'https://www.googleapis.com/auth/userinfo.profile',
+    'https://www.googleapis.com/auth/spreadsheets.readonly',
+  ];
+
   constructor(
     @inject(GoogleServicesFacade)
     private googleSheet: GoogleServicesFacade,
-    @inject(GoogleUserRepository)
-    private googleUserRepository: IGoogleUserRepository,
     @inject(GoogleClientRepository)
     private googleClientRepository: IGoogleClientRepository,
   ) {}
@@ -32,36 +32,34 @@ export default class AuthorizeGoogleUserService {
    * @param options
    */
   async execute(options: AuthorizeGoogleUserServiceOption) {
-    const { userToken } = options;
-    const { instanceId } = options;
-
     // TODO: Move to a Service that create clients in initialization of API
     // Create client if it doesn't exist
     // if (!instanceId)
     //   instanceId = this.googleSheet.clientFactor(serviceCredentials);
 
-    // TODO: Move this to controller and inject to this class
-    // const oAuthClient = this.googleUserRepository.getClient(instanceId);
-    const oAuthClient =
-      InstanceManagerHelper.getInstanceById<OAuth2Client>(instanceId);
+    const oAuthClient = this.googleClientRepository.findById(options.clientId);
 
-    // If token doesn't informed return an authentication URL token
-    if (userToken) return this.googleSheet.verifyUserToken(userToken);
+    try {
+      if (options.userToken) {
+        const refreshedToken = await oAuthClient.refreshAccessToken();
+        oAuthClient.setCredentials(refreshedToken.credentials);
+        return oAuthClient;
+      }
+      console.log(
+        'User token was NOT informed, generating link authorization for new token',
+      );
 
-    console.log('Generate a new token');
-
-    return this.googleSheet.getAuthUrl(oAuthClient, {
-      scopes: [
-        'https://www.googleapis.com/auth/userinfo.profile',
-        'https://www.googleapis.com/auth/spreadsheets.readonly',
-      ],
-    });
-
-    //
-    // // Set loaded token
-    // oAuthClient.setCredentials(userToken);
-    //
-    // // Get all values from Sheet
-    // return this.googleSheet.getSpreadSheetValues(oAuthClient, spreadsheet);
+      // If token doesn't informed return an authorization URL token
+      return this.googleSheet.getAuthUrl(oAuthClient, {
+        askPermission: true,
+        scopes: this.SCOPES,
+      });
+    } catch (err) {
+      console.log(`Stored user token is wrong, need re-authentication: ${err}`);
+      return this.googleSheet.getAuthUrl(oAuthClient, {
+        askPermission: true,
+        scopes: this.SCOPES,
+      });
+    }
   }
 }

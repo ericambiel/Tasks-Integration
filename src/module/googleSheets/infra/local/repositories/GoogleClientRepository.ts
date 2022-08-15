@@ -5,10 +5,20 @@ import { OAuth2Client } from 'google-auth-library';
 import { inject, singleton } from 'tsyringe';
 import FilesHandlerHelper from '@shared/helpers/FilesHandlerHelper';
 import InstanceManagerHelper from '@shared/helpers/InstanceManagerHelper';
+import { EventEmitter } from 'events';
 import { IGoogleClientRepository } from './IGoogleClientRepository';
+
+// TODO: create a class to put all events there, call this class in begin of initialization server
+const eventEmitter = new EventEmitter();
+
+eventEmitter.on('loadClientsCredentialFileOK', () =>
+  console.log('All clients credential files was loaded.'),
+);
 
 @singleton()
 export default class GoogleClientRepository implements IGoogleClientRepository {
+  private clientsCredential: GoogleClientCredential[];
+
   constructor(
     /** Path to credential clients file */
     @inject('clientCredentialFilePath')
@@ -17,7 +27,6 @@ export default class GoogleClientRepository implements IGoogleClientRepository {
     private fileHandler: FilesHandlerHelper,
     @inject(GoogleServicesFacade)
     private googleServices: GoogleServicesFacade,
-    private clientsCredential: GoogleClientCredential[],
   ) {
     this.loadClientsCredentialFile(clientCredentialFilePath).then(() => {
       // Register all loaded clients.
@@ -25,6 +34,7 @@ export default class GoogleClientRepository implements IGoogleClientRepository {
       this.clientsCredential.forEach(clientCredential =>
         this.googleServices.clientFactor(clientCredential),
       );
+      eventEmitter.emit('loadClientsCredentialFileOK');
     });
   }
 
@@ -35,9 +45,9 @@ export default class GoogleClientRepository implements IGoogleClientRepository {
    */
   private async loadClientsCredentialFile(clientCredentialFilePath: string) {
     // Load client secrets from a local file to use in service credential.
-    this.clientsCredential = await this.fileHandler.readJSONFilesInDir(
-      clientCredentialFilePath,
-    );
+    this.clientsCredential = await this.fileHandler
+      .readJSONFilesInDir(clientCredentialFilePath)
+      .then();
   }
 
   /**
@@ -63,7 +73,8 @@ export default class GoogleClientRepository implements IGoogleClientRepository {
     throw new Error(`${clientId} - This function not implemented eat`);
   }
 
-  findById(clientId: string): OAuth2Client | undefined {
+  // TODO: Test if instance doesn't exists, throw error
+  findById(clientId: string): OAuth2Client {
     return InstanceManagerHelper.getInstanceById(clientId);
   }
 
@@ -71,7 +82,7 @@ export default class GoogleClientRepository implements IGoogleClientRepository {
     return this.clientsCredential;
   }
 
-  save(client: GoogleClientCredential): void {
+  create(client: GoogleClientCredential): void {
     this.clientsCredential.push(client);
     this.saveClientCredentialOnDisk(client).then();
   }

@@ -21,7 +21,7 @@ export default class FilesHandlerHelper {
     return new Promise<string[]>((resolve, reject) => {
       fs.readdir(filePath, (err, files) => {
         if (err) reject(err);
-        console.log(`Reading file: ${filePath}`);
+        console.log(`Reading files in: ${filePath}`);
         resolve(files);
       });
     });
