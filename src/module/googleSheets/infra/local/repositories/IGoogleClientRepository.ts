@@ -1,5 +1,5 @@
 import { OAuth2Client } from 'google-auth-library';
-import { GoogleClientCredential } from '@shared/facades/GoogleServicesFacade';
+import { GoogleClientCredential } from '@shared/facades/GoogleAPIFacade';
 
 export interface IGoogleClientRepository {
   list(): GoogleClientCredential[];

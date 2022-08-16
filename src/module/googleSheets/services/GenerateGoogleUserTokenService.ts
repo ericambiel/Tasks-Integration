@@ -1,7 +1,6 @@
-import { inject, injectable } from 'tsyringe';
-import GoogleServicesFacade from '@shared/facades/GoogleServicesFacade';
+import { inject, singleton } from 'tsyringe';
+import GoogleAPIFacade from '@shared/facades/GoogleAPIFacade';
 import { OAuth2Client } from 'google-auth-library';
-import InstanceManagerHelper from '@shared/helpers/InstanceManagerHelper';
 import GoogleUserRepository from '../infra/local/repositories/GoogleUserRepository';
 
 type GenerateGoogleUserTokenServiceOption = {
@@ -9,49 +8,39 @@ type GenerateGoogleUserTokenServiceOption = {
    * A code validation for a new token.
    */
   validationTokenCode: string;
-  /**
-   * instance ID of OAuth2Client
-   */
-  instanceId: string;
 };
 
-@injectable()
+@singleton()
 export default class GenerateGoogleUserTokenService {
   constructor(
-    @inject(GoogleServicesFacade)
-    private googleSheet: GoogleServicesFacade,
+    @inject(GoogleAPIFacade)
+    private googleAPI: GoogleAPIFacade,
     @inject(GoogleUserRepository)
     private repository: GoogleUserRepository,
+    @inject(OAuth2Client)
+    private oAuth2Client: OAuth2Client,
   ) {}
 
-  async execute(options: GenerateGoogleUserTokenServiceOption) {
-    const { validationTokenCode, instanceId } = options;
+  async execute(options: GenerateGoogleUserTokenServiceOption): Promise<void> {
+    const { validationTokenCode } = options;
 
-    const oAuthClient =
-      InstanceManagerHelper.getInstanceById<OAuth2Client>(instanceId);
-
-    const newTokenUser = await this.googleSheet.getNewToken(
-      oAuthClient,
+    const newTokenUser = await this.googleAPI.getNewToken(
+      this.oAuth2Client,
       validationTokenCode,
     );
 
     if (!newTokenUser.access_token)
       throw new Error(
-        'Something wrong with taken new token, property "access_token" doesnt exists',
+        `Something wrong with the new token obtained, property "access_token" doesn't exists`,
       );
 
     // Get more information from user giving a token
-    const tokenInfo = await this.googleSheet.getTokenInformation(
-      oAuthClient,
+    const tokenInfo = await this.googleAPI.getTokenInformation(
+      this.oAuth2Client,
       newTokenUser.access_token,
     );
 
-    // Set token to client
-    oAuthClient.setCredentials(newTokenUser);
-
     // Save token on disc
     this.repository.save({ ...newTokenUser, token_info: tokenInfo });
-
-    return oAuthClient;
   }
 }

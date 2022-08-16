@@ -1,14 +1,14 @@
 import 'reflect-metadata';
 import { container } from 'tsyringe';
-import GoogleServicesFacade from '@shared/facades/GoogleServicesFacade';
+import GoogleAPIFacade from '@shared/facades/GoogleAPIFacade';
 import { OAuth2Client } from 'google-auth-library';
 
 import CLIENT_SECRET from '../../misc/clients/client_secret_331108598412-fmcfkud7cm6hv4qvjc21g37ormjob0qu.apps.googleusercontent.com.json';
 import { UserTokenInfo } from '../../module/googleSheets/infra/local/repositories/IGoogleUserRepository';
 
 describe('Unit Test - GoogleSeviceFacade', () => {
-  let googleServiceFacade: GoogleServicesFacade;
-  let oAuthClient: OAuth2Client;
+  let googleServiceFacade: GoogleAPIFacade;
+  let oAuth2Client: OAuth2Client;
 
   /** Get this code by running AuthorizeGoogleUserService.spec */
   const validationTokenCode =
@@ -35,21 +35,21 @@ describe('Unit Test - GoogleSeviceFacade', () => {
   };
 
   beforeAll(() => {
-    googleServiceFacade = container.resolve(GoogleServicesFacade);
+    googleServiceFacade = container.resolve(GoogleAPIFacade);
   });
 
   it('Should be possible create an OAuth2Client', async () => {
-    oAuthClient = googleServiceFacade.clientFactor(CLIENT_SECRET);
+    oAuth2Client = googleServiceFacade.clientFactor(CLIENT_SECRET);
   });
 
   it('Should be possible get new token to Google User', async () => {
     const newToken = await googleServiceFacade.getNewToken(
-      oAuthClient,
+      oAuth2Client,
       validationTokenCode,
     );
 
     const tokenInfo = await googleServiceFacade.getTokenInformation(
-      oAuthClient,
+      oAuth2Client,
       newToken.access_token!,
     );
 

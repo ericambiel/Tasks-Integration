@@ -1,6 +1,6 @@
-import GoogleServicesFacade, {
+import GoogleAPIFacade, {
   GoogleClientCredential,
-} from '@shared/facades/GoogleServicesFacade';
+} from '@shared/facades/GoogleAPIFacade';
 import { OAuth2Client } from 'google-auth-library';
 import { inject, singleton } from 'tsyringe';
 import FilesHandlerHelper from '@shared/helpers/FilesHandlerHelper';
@@ -25,8 +25,8 @@ export default class GoogleClientRepository implements IGoogleClientRepository {
     private clientCredentialFilePath: string,
     @inject(FilesHandlerHelper)
     private fileHandler: FilesHandlerHelper,
-    @inject(GoogleServicesFacade)
-    private googleServices: GoogleServicesFacade,
+    @inject(GoogleAPIFacade)
+    private googleServices: GoogleAPIFacade,
   ) {
     this.loadClientsCredentialFile(clientCredentialFilePath).then(() => {
       // Register all loaded clients.
@@ -84,6 +84,7 @@ export default class GoogleClientRepository implements IGoogleClientRepository {
 
   create(client: GoogleClientCredential): void {
     this.clientsCredential.push(client);
+    this.googleServices.clientFactor(client);
     this.saveClientCredentialOnDisk(client).then();
   }
 }

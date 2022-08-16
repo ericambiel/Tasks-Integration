@@ -1,9 +1,10 @@
 import IGoogleSheetsFacade from '@shared/facades/IGoogleSheetsFacade';
-import { Credentials, OAuth2Client } from 'google-auth-library';
+import { Credentials, LoginTicket, OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
 import { container, inject, singleton } from 'tsyringe';
 import FilesHandlerHelper from '@shared/helpers/FilesHandlerHelper';
 import { GenerateAuthUrlOpts } from 'google-auth-library/build/src/auth/oauth2client';
+import { arrayArrayToObjArray } from '@shared/helpers/smallHelper';
 import { UserTokenInfo } from '../../module/googleSheets/infra/local/repositories/IGoogleUserRepository';
 
 export type GoogleClientCredential = {
@@ -22,14 +23,14 @@ export type GoogleClientCredential = {
 export type GetSpreadSheetValuesOption = {
   /**
    *  Spread Sheet ID. You can get it from you google sheet URL
-   *  @example 16UHClMZfSwXvDPECG1oerd-pfD-pWC5cugrotqq_TQQ
+   *  @example 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms
    */
-  spreadsheetId: string;
+  spreadsheetId: '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms' | string;
   /**
    *  Range of columns and rows
-   *  @example Horas!A2:G
+   *  @example Class Data!A2:E
    */
-  range: string;
+  range: 'Class Data!A2:E' | string;
 };
 
 export type GetAuthUrlOption = {
@@ -45,7 +46,7 @@ export type GetAuthUrlOption = {
 };
 
 @singleton()
-export default class GoogleServicesFacade implements IGoogleSheetsFacade {
+export default class GoogleAPIFacade implements IGoogleSheetsFacade {
   constructor(
     @inject(FilesHandlerHelper)
     private filesHandlerHelper: FilesHandlerHelper,
@@ -122,6 +123,17 @@ export default class GoogleServicesFacade implements IGoogleSheetsFacade {
     return oAuth2Client.getTokenInfo(accessToken).then();
   }
 
+  verifyUserToken(
+    oAuth2Client: OAuth2Client,
+    idToken: string,
+  ): Promise<LoginTicket> {
+    return oAuth2Client.verifyIdToken({
+      idToken,
+      // eslint-disable-next-line no-underscore-dangle
+      audience: oAuth2Client._clientId,
+    });
+  }
+
   /**
    * Prints values from spreadsheet:
    * @param oAuth2Client The authenticated Google OAuth client.
@@ -136,6 +148,7 @@ export default class GoogleServicesFacade implements IGoogleSheetsFacade {
     return new Promise((resolve, reject) => {
       sheets.spreadsheets.values.get(
         {
+          // majorDimension: 'ROWS', // default
           spreadsheetId: options.spreadsheetId,
           range: options.range,
         },
@@ -144,8 +157,7 @@ export default class GoogleServicesFacade implements IGoogleSheetsFacade {
 
           if (err) reject(new Error(`The API returned an error: ${err})`));
 
-          // if (rows?.length) rows.forEach(row => console.log(`${row}`));
-          if (rows?.length) resolve(rows);
+          if (rows?.length) resolve(arrayArrayToObjArray(rows));
 
           reject(new Error('No data found.'));
         },

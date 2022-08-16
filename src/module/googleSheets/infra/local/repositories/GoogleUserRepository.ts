@@ -1,4 +1,3 @@
-import { TokenInfo } from 'google-auth-library';
 import { inject, singleton } from 'tsyringe';
 import FilesHandlerHelper from '@shared/helpers/FilesHandlerHelper';
 import { EventEmitter } from 'events';
@@ -11,6 +10,7 @@ eventEmitter.on('loadUsersTokenFiles', () =>
   console.log('All users token files was loaded.'),
 );
 
+/** @author Eric Ambiel */
 @singleton<IGoogleUserRepository>()
 export default class GoogleUserRepository implements IGoogleUserRepository {
   private userTokenInfo: UserTokenInfo[];
@@ -31,6 +31,7 @@ export default class GoogleUserRepository implements IGoogleUserRepository {
    * @param tokensPath The path to the user's access and refresh tokens.
    * P.S it will be created automatically when the authorization flow
    * completes for the first time.
+   * @author Eric Ambiel
    */
   private async loadUsersTokenFiles(tokensPath: string): Promise<void> {
     // Get stored token from JSON file
@@ -40,6 +41,7 @@ export default class GoogleUserRepository implements IGoogleUserRepository {
 
   /**
    * Store the token to disk for later program executions
+   * @author Eric Ambiel
    */
   private async saveTokenOnDisk(userInfoToken: UserTokenInfo) {
     return this.fileHandler
@@ -54,20 +56,26 @@ export default class GoogleUserRepository implements IGoogleUserRepository {
       });
   }
 
-  delete(sub: TokenInfo['sub']): void {
+  /** @author Eric Ambiel */
+  deleteBySub(sub: string): void {
     throw new Error(`${sub} - This function not implemented eat`);
   }
 
-  findBySub(sub: TokenInfo['sub']): UserTokenInfo | undefined {
-    return this.userTokenInfo.find(
-      userToken => userToken.token_info.sub === sub,
+  /** @author Eric Ambiel */
+  findBySub(sub: string): UserTokenInfo {
+    const userToken = this.userTokenInfo.find(
+      userTokenInfo => userTokenInfo.token_info.sub === sub,
     );
+    if (userToken) return userToken;
+    throw new Error(`Informed sub: ${sub} was not found`);
   }
 
+  /** @author Eric Ambiel */
   list(): UserTokenInfo[] {
     return this.userTokenInfo;
   }
 
+  /** @author Eric Ambiel */
   save(userInfoToken: UserTokenInfo): void {
     this.userTokenInfo.push(userInfoToken);
     this.saveTokenOnDisk(userInfoToken).then();

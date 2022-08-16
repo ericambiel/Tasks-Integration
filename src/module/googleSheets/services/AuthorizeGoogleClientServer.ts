@@ -1,5 +1,5 @@
-import { inject, injectable } from 'tsyringe';
-import GoogleServicesFacade from '@shared/facades/GoogleServicesFacade';
+import { inject, singleton } from 'tsyringe';
+import GoogleAPIFacade from '@shared/facades/GoogleAPIFacade';
 import { Credentials, OAuth2Client } from 'google-auth-library';
 import GoogleClientRepository from '../infra/local/repositories/GoogleClientRepository';
 import { IGoogleClientRepository } from '../infra/local/repositories/IGoogleClientRepository';
@@ -9,27 +9,27 @@ type AuthorizeGoogleClientServerOption = {
    * client ID of OAuth2Client
    */
   clientId: string;
-  userToken?: Credentials;
+  userToken: Credentials;
 };
 
-@injectable()
+@singleton()
 export default class AuthorizeGoogleClientServer {
   private readonly SCOPES = [
     'https://www.googleapis.com/auth/userinfo.profile',
     'https://www.googleapis.com/auth/spreadsheets.readonly',
   ];
 
-  private readonly getAuthUrl = (oAuthClient: OAuth2Client) =>
-    this.googleSheet.getAuthUrl(oAuthClient, {
+  private readonly getAuthUrl = (oAuth2Client: OAuth2Client) =>
+    this.googleAPI.getAuthUrl(oAuth2Client, {
       askPermission: true,
       scopes: this.SCOPES,
     });
 
   constructor(
-    @inject(GoogleServicesFacade)
-    private googleSheet: GoogleServicesFacade,
+    @inject(GoogleAPIFacade)
+    private googleAPI: GoogleAPIFacade,
     @inject(GoogleClientRepository)
-    private googleClientRepository: IGoogleClientRepository,
+    private repository: IGoogleClientRepository,
   ) {}
 
   /**
@@ -40,26 +40,19 @@ export default class AuthorizeGoogleClientServer {
    * @throws Case something wrong return URL to authorize client server to access user.
    *
    */
-  async execute(
-    options: AuthorizeGoogleClientServerOption,
-  ): Promise<string | OAuth2Client> {
-    const oAuthClient = this.googleClientRepository.findById(options.clientId);
+  async execute(options: AuthorizeGoogleClientServerOption): Promise<void> {
+    const oAuth2Client = this.repository.findById(options.clientId);
 
     try {
-      if (options.userToken) {
-        const refreshedToken = await oAuthClient.refreshAccessToken();
-        oAuthClient.setCredentials(refreshedToken.credentials);
-        return oAuthClient;
-      }
-      console.log(
-        'User token was NOT informed, generating link authorization for new token',
-      );
-
-      // If token doesn't informed return an authorization URL token
-      return this.getAuthUrl(oAuthClient);
+      oAuth2Client.setCredentials(options.userToken);
+      await oAuth2Client.refreshAccessToken(); // After refresh, set too.
+      // TODO: use this oAuth2Client to update token, need retrieve tokenInfo before update token file
+      // return oAuth2Client;
     } catch (err) {
-      console.log(`Stored user token is wrong, need re-authentication: ${err}`);
-      return this.getAuthUrl(oAuthClient);
+      console.error(
+        `Re-authentication is needed, same thing wrong with Client credentials: ${err}`,
+      );
+      throw Error(this.getAuthUrl(oAuth2Client));
     }
   }
 }
