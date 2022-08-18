@@ -3,7 +3,7 @@ import { container } from 'tsyringe';
 import { GoogleClientCredential } from '@shared/facades/GoogleAPIFacade';
 
 import { Credentials } from 'google-auth-library';
-import sleep from '@shared/helpers/smallHelper';
+import { sleep } from '@shared/helpers/smallHelper';
 import AuthorizeGoogleClientServer from './AuthorizeGoogleClientServer';
 import { IGoogleClientRepository } from '../infra/local/repositories/IGoogleClientRepository';
 import GoogleClientRepository from '../infra/local/repositories/GoogleClientRepository';

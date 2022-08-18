@@ -10,13 +10,17 @@ const sleep = (mSeconds: number) =>
  * [{name:'Eric',surname:'Ambiel'},{name:'Maria',surname:'Cristina'}] */
 const arrayArrayToObjArray = (rows: unknown[][]) => {
   const keys = <[]>rows.shift();
-  return rows.map(values => {
-    return keys.reduce((preview, current, i) => {
+  return rows.map(values =>
+    keys.reduce((preview, current, i) => {
       const newProperty: Record<string, unknown> = {};
       newProperty[current] = values[i];
       return { ...preview, ...newProperty };
-    }, {});
-  });
+    }, {}),
+  );
 };
 
-export { sleep, arrayArrayToObjArray };
+const stringifyToSlashedJSON = (
+  obj: Record<string, unknown> | Record<string, unknown>[],
+) => JSON.stringify(obj).replace(/"/g, '\\"');
+
+export { sleep, arrayArrayToObjArray, stringifyToSlashedJSON };
