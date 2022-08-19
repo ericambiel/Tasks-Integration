@@ -8,7 +8,7 @@ describe('Unit Test - smallHelper', () => {
       aprovadoAprovacaoCheckbox: 'on',
       realizadoNumeroOMOP: '1000204',
       realizadoCodOMOP: '1000204',
-      realizadoProjeto: 'BRF PRONTA GROSSA MU1807041',
+      realizadoProjeto: 'BFF PRONTA GROSSA LL45456411',
       realizadoOperacaoTarefa: '20',
       realizadoOperacaoTarefaNome: 'HORAS TRABALHADAS',
       realizadoData: '02/08/2022',

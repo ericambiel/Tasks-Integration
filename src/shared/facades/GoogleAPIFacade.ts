@@ -4,7 +4,7 @@ import { google } from 'googleapis';
 import { container, inject, singleton } from 'tsyringe';
 import FilesHandlerHelper from '@shared/helpers/FilesHandlerHelper';
 import { GenerateAuthUrlOpts } from 'google-auth-library/build/src/auth/oauth2client';
-import { arrayArrayToObjArray } from '@shared/helpers/smallHelper';
+import { arrayArrayToObjArrayHead } from '@shared/helpers/smallHelper';
 import { UserTokenInfo } from '../../module/googleSheets/infra/local/repositories/IGoogleUserRepository';
 
 export type GoogleClientCredential = {
@@ -157,7 +157,7 @@ export default class GoogleAPIFacade implements IGoogleSheetsFacade {
 
           if (err) reject(new Error(`The API returned an error: ${err})`));
 
-          if (rows?.length) resolve(arrayArrayToObjArray(rows));
+          if (rows?.length) resolve(arrayArrayToObjArrayHead(rows));
 
           reject(new Error('No data found.'));
         },
