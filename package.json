@@ -1,5 +1,5 @@
 {
-  "name": "appointments_integration",
+  "name": "tasks_integration",
   "version": "1.0.0",
   "description": "",
   "main": "src/shared/infra/http/server.js",
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ericambiel/appointments_integration.git"
+    "url": "git+https://github.com/ericambiel/tasks_integration.git"
   },
   "keywords": [
     "googlesheet",
@@ -21,9 +21,9 @@
   "author": "Eric Ambiel",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/ericambiel/appointments_integration/issues"
+    "url": "https://github.com/ericambiel/tasks_integration/issues"
   },
-  "homepage": "https://github.com/ericambiel/appointments_integration#readme",
+  "homepage": "https://github.com/ericambiel/tasks_integration#readme",
   "dependencies": {
     "class-transformer": "^0.5.1",
     "dotenv-safe": "^8.2.0",

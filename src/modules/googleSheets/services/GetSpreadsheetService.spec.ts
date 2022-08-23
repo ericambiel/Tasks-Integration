@@ -13,8 +13,7 @@ describe('Unit teste - GetSpreadsheetService', () => {
   const SPREAD_SHEET = '16UHClMZfSwXvDPECG1oerd-pfD-pWC5cugrotqq_TQQ';
   const RANGE = 'Horas!A2:G';
   const GUSER = '108866897033893388302';
-  const CLIENT_ID =
-    '331108598412-fmcfkud7cm6hv4qvjc21g37ormjob0qu.apps.googleusercontent.com';
+  const CLIENT_ID = clientCredential.web.client_id;
 
   const {
     web: {

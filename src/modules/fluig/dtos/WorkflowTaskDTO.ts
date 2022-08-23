@@ -1,6 +1,6 @@
-import { AppointmentFormDataDTO } from './AppointmentFormDataDTO';
+import { TaskFormDataDTO } from './TaskFormDataDTO';
 
-export type WorkflowAppointmentDTO = {
+export type WorkflowTaskDTO = {
   processInstanceId: 0;
   /**
    * Process ID
@@ -8,7 +8,7 @@ export type WorkflowAppointmentDTO = {
    * Working hours recording (Apontamento Horas Trabalho) — '047'
    * Travel Request (Requisição de Viagem)                — '058'
    */
-  processId: '047' | '058'; // Appointment Process ID is 047
+  processId: '047' | '058'; // Task Process ID is 047
   version: 5;
   /**
    * User Id - get from JWT TOKEN
@@ -27,7 +27,7 @@ export type WorkflowAppointmentDTO = {
   appointments: [];
   attachments: [];
   digitalSignature: false;
-  formData: AppointmentFormDataDTO;
+  formData: TaskFormDataDTO;
   isDigitalSigned: false;
   versionDoc: 0;
   selectedState: 12;

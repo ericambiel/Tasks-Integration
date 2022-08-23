@@ -1,8 +1,8 @@
 /**
- * Here need get all properties from {Appointment} array
+ * Here need get all properties from task array
  * and add "___realizadoId" in each key object name
  */
-export type AppointmentSerializedDTO = [
+export type TaskSerializedDTO = [
   {
     name: 'realizadoId___1';
     value: '1';
@@ -21,7 +21,7 @@ export type AppointmentSerializedDTO = [
   },
   {
     name: 'realizadoProjeto___1';
-    value: 'BFF PRONTA GROSSA LL18054586';
+    value: 'BFF PRONTA FINA LL5874502';
   },
   {
     name: 'realizadoOperacaoTarefa___1';

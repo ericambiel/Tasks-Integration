@@ -1,4 +1,4 @@
-export interface IAppointmentDTO {
+export type TaskDTO = {
   /**
    * Sequential number(string format) starting at 1
    * @example
@@ -22,7 +22,7 @@ export interface IAppointmentDTO {
   /**
    * Project description referring to OP/OM. Get from 'Dataset' - 'Find OM by ID'.
    * @example
-   * 'BFF PRONTA GROSSA LL5874502'
+   * 'BFF PRONTA FINA LL5874502'
    */
   realizadoProjeto: string;
   /**
@@ -96,4 +96,4 @@ export interface IAppointmentDTO {
    */
   realizadoObservacao: string;
   realizadoAprovado: 'false';
-}
+};

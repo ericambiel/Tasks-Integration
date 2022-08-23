@@ -5,7 +5,7 @@ import { container, inject, singleton } from 'tsyringe';
 import FilesHandlerHelper from '@shared/helpers/FilesHandlerHelper';
 import { GenerateAuthUrlOpts } from 'google-auth-library/build/src/auth/oauth2client';
 import { arrayArrayToObjArrayHead } from '@shared/helpers/smallHelper';
-import { UserTokenInfo } from '../../module/googleSheets/infra/local/repositories/IGoogleUserRepository';
+import { UserTokenInfo } from '@modules/googleSheets/infra/local/repositories/IGoogleUserRepository';
 
 export type GoogleClientCredential = {
   web: {
@@ -31,6 +31,10 @@ export type GetSpreadSheetValuesOption = {
    *  @example Class Data!A2:E
    */
   range: 'Class Data!A2:E' | string;
+  /**
+   * Array of Array values, direct from Google without treat to Array of Obj
+   */
+  arrayArray?: true;
 };
 
 export type GetAuthUrlOption = {
@@ -135,7 +139,7 @@ export default class GoogleAPIFacade implements IGoogleSheetsFacade {
   }
 
   /**
-   * Prints values from spreadsheet:
+   * Get values from spreadsheet:
    * @param oAuth2Client The authenticated Google OAuth client.
    * @param options
    */
@@ -145,7 +149,7 @@ export default class GoogleAPIFacade implements IGoogleSheetsFacade {
   ) {
     const sheets = google.sheets({ version: 'v4', auth: <never>oAuth2Client }); // TODO: Type OAuth2Client doesn't work here
 
-    return new Promise((resolve, reject) => {
+    return new Promise<[][] | Record<string, string>[]>((resolve, reject) => {
       sheets.spreadsheets.values.get(
         {
           // majorDimension: 'ROWS', // default
@@ -155,9 +159,14 @@ export default class GoogleAPIFacade implements IGoogleSheetsFacade {
         (err, res) => {
           const rows = res?.data.values;
 
-          if (err) reject(new Error(`The API returned an error: ${err})`));
+          if (err) reject(new Error(`The API returned an error: ${err}`));
 
-          if (rows?.length) resolve(arrayArrayToObjArrayHead(rows));
+          if (rows?.length)
+            resolve(
+              options.arrayArray
+                ? rows
+                : arrayArrayToObjArrayHead(rows, { undefinedTo: null }),
+            );
 
           reject(new Error('No data found.'));
         },

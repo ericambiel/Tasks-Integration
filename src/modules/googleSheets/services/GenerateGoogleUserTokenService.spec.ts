@@ -10,7 +10,7 @@ import clientCredential from '../../../misc/clients/client_secret_331108598412-f
 describe('Unit test - GenerateGoogleUserTokenService.spec.ts', () => {
   /** Get this code by running AuthorizeGoogleUserService.spec */
   const validationTokenCode =
-    '4/0AdQt8qjW1tmBFL1DgFwtPV9mUUiO_ejyvXRvzJfA_quftowSgr2UGnzDc0n5sgP6OhAw_w';
+    '4/0AdQt8qgSeXoPsvAuRn-q-iYFqQy7OtifyfP1aJxATPRIhvo33TVwM5j8kOpoSVg82xJGGw';
 
   const {
     web: {

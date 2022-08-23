@@ -4,7 +4,7 @@ import GoogleAPIFacade from '@shared/facades/GoogleAPIFacade';
 import { OAuth2Client } from 'google-auth-library';
 
 import CLIENT_SECRET from '../../misc/clients/client_secret_331108598412-fmcfkud7cm6hv4qvjc21g37ormjob0qu.apps.googleusercontent.com.json';
-import { UserTokenInfo } from '../../module/googleSheets/infra/local/repositories/IGoogleUserRepository';
+import { UserTokenInfo } from '../../modules/googleSheets/infra/local/repositories/IGoogleUserRepository';
 
 describe('Unit Test - GoogleSeviceFacade', () => {
   let googleServiceFacade: GoogleAPIFacade;

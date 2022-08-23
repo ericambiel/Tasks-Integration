@@ -27,6 +27,6 @@ export default class GetSpreadsheetService {
 
     this.oAuth2Client.setCredentials(userToken);
 
-    return this.googleAPI.getSpreadSheetValues(this.oAuth2Client, options); // Stopped here, need to test
+    return this.googleAPI.getSpreadSheetValues(this.oAuth2Client, options);
   }
 }

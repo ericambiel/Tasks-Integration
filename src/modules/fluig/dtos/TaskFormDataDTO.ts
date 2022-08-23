@@ -1,10 +1,10 @@
-import { AppointmentDTO } from './IAppointmentDTO';
-import { AppointmentSerializedDTO } from './AppointmentSerializedDTO';
+import { TaskDTO } from '@modules/fluig/dtos/TaskDTO';
+import { TaskSerializedDTO } from './TaskSerializedDTO';
 
 /**
- * Object created by an appointment form at Fluig
+ * Object created by a task form at Fluig
  */
-export type AppointmentFormDataDTO = [
+export type TaskFormDataDTO = [
   {
     name: 'gerente';
     /**
@@ -29,9 +29,9 @@ export type AppointmentFormDataDTO = [
   {
     name: 'apontamentosRealizadosJson';
     /**
-     * All appointments value here in JSON format string (stringify)
+     * All tasks value here in JSON format string (stringify)
      */
-    value: AppointmentDTO[];
+    value: TaskDTO[];
   },
   {
     name: 'apontamentosAprovados';
@@ -78,7 +78,7 @@ export type AppointmentFormDataDTO = [
   },
   {
     name: 'tipoApontamento';
-    /* Type of project appointment in */
+    /* Type of project task in */
     value: 'OM' | 'OP';
   },
   {
@@ -209,8 +209,8 @@ export type AppointmentFormDataDTO = [
     value: '';
   },
   //
-  // Here need get all properties from "AppointmentJSON" array
+  // Here need get all properties from "taskJSON" array
   // and add "___realizadoId" in each key object name
   //
-  ...AppointmentSerializedDTO,
+  ...TaskSerializedDTO,
 ];
