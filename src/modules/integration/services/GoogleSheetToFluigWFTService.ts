@@ -13,6 +13,7 @@ export default class GoogleSheetToFluigWFTService {
   // Stop here, need to format all object and return to controller sends to Fluig server
   private getFormProperties(
     objs: Record<string, string> | Record<string, string>[],
+    options?: { newNameKey: true },
   ): FormPropertyDTO[] {
     const newNameKey = (key: string, idx: number) => `${key}___${idx + 1}`;
 
@@ -20,7 +21,7 @@ export default class GoogleSheetToFluigWFTService {
       return objs
         .map((obj, idx, array) =>
           Object.keys(obj).map(key => ({
-            name: newNameKey(key, idx),
+            name: options?.newNameKey ? newNameKey(key, idx) : key,
             value: array[idx][<keyof typeof obj>key],
           })),
         )
