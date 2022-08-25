@@ -1,14 +1,20 @@
-/* Simulate event emitter, in real scenario server wait for load files called by event */
-const sleep = (mSeconds: number) =>
+/**
+ * Simulate event emitter, in real scenario server wait for load files called by event
+ * @author Eric Ambiel
+ */
+export const sleep = (mSeconds: number) =>
   new Promise(resolve => {
     setTimeout(resolve, mSeconds);
   });
 
-/** Transform Array of Array in Object Array
+/**
+ * Transform Array of Array in Object Array
+ * @author Eric Ambiel
  * @example
  * [[name,surname],['Eric','Ambiel'],['Maria','Cristina']] =>
- * [{name:'Eric',surname:'Ambiel'},{name:'Maria',surname:'Cristina'}] */
-function arrayArrayToObjArrayHead(
+ * [{name:'Eric',surname:'Ambiel'},{name:'Maria',surname:'Cristina'}]
+ */
+export function arrayArrayToObjArrayHead(
   rows: unknown[][],
   options?: { undefinedTo: number | string | boolean | null },
 ) {
@@ -26,4 +32,15 @@ function arrayArrayToObjArrayHead(
 //   obj: Record<string, unknown> | Record<string, unknown>[],
 // ) => JSON.stringify(obj).replace(/"/g, '\\"');
 
-export { sleep, arrayArrayToObjArrayHead };
+/**
+ * Extract payload from given JWT
+ * @param jWT
+ * @private
+ * @author Eric Ambiel
+ */
+export function extractPayloadFromJWT<T>(jWT: string): T {
+  // Convert JWT Token to payload
+  const jWTSplit = jWT.split('.')[1];
+  const decodedJWTSplit = Buffer.from(jWTSplit, 'base64').toString();
+  return <T>JSON.parse(decodedJWTSplit);
+}

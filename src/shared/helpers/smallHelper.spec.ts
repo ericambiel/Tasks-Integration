@@ -6,6 +6,6 @@ describe('Unit test - smallHelper', () => {
     const arrayObjs = arrayArrayToObjArrayHead(spredshetArrayArrayMock);
     expect(arrayObjs).toEqual(expect.arrayContaining([expect.any(Object)]));
 
-    // TODO: test all Keys of Objets apear in ArrayArray HEAD [0]
+    // TODO: test if all Keys of Objets apear in ArrayArray HEAD [0]
   });
 });

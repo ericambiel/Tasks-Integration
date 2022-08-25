@@ -4,6 +4,7 @@ import GoogleAPIFacade, {
   GoogleClientCredential,
 } from '@shared/facades/GoogleAPIFacade';
 import { OAuth2Client } from 'google-auth-library';
+import { IGoogleUserRepository } from '@modules/googleSheets/infra/local/repositories/IGoogleUserRepository';
 import GoogleUserRepository from '../infra/local/repositories/GoogleUserRepository';
 
 type GetSpreadsheetServiceOptions = {
@@ -17,7 +18,7 @@ export default class GetSpreadsheetService {
     @inject(GoogleAPIFacade)
     private googleAPI: GoogleAPIFacade,
     @inject(GoogleUserRepository)
-    private googleUserRepository: GoogleUserRepository,
+    private googleUserRepository: IGoogleUserRepository,
     @inject(OAuth2Client)
     private oAuth2Client: OAuth2Client,
   ) {}

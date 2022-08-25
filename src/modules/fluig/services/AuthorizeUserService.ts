@@ -1,17 +1,17 @@
 import { URLSearchParams } from 'url';
-import { container, inject, singleton } from 'tsyringe';
+import { inject, singleton } from 'tsyringe';
 import { Axios } from 'axios';
+import {
+  IFluigUserModel,
+  FluigUserModel,
+} from '@modules/fluig/infra/local/models/FluigUserModel';
+import AxiosFacade from '@shared/facades/AxiosFacade';
+import FluigUserRepository from '@modules/fluig/infra/local/repositories/FluigUserRepository';
+import { IFluigUserRepository } from '@modules/fluig/infra/local/repositories/IFluigUserRepository';
+import { plainToInstance } from 'class-transformer';
+import { extractPayloadFromJWT } from '@shared/helpers/smallHelper';
 
-type JWTPayloadFluig = {
-  sub: string;
-  role: string;
-  tenant: number;
-  userTenantId: number;
-  userType: number;
-  userUUID: string;
-  tenantUUID: string;
-  lastUpdateDate: number;
-  userTimeZone: string;
+type JWTPayloadFluig = IFluigUserModel & {
   exp: number;
   iat: number;
   aud: string;
@@ -19,32 +19,57 @@ type JWTPayloadFluig = {
 
 @singleton()
 export default class AuthorizeUserService {
+  private readonly AXIOS_DEFAULT_INSTANCE_NAME = 'axiosCleanInstanceFluig';
+
+  private readonly AXIOS_DEFAULT_INSTANCE: Axios;
+
   constructor(
-    @inject(Axios)
-    private axiosInstance: Axios,
-  ) {}
+    @inject(AxiosFacade)
+    private axiosFacade: AxiosFacade,
+    // @inject(DependencyContainer)
+    // private axiosContainer: DependencyContainer,
+    @inject(FluigUserRepository)
+    private repository: IFluigUserRepository,
+  ) {
+    this.AXIOS_DEFAULT_INSTANCE = axiosFacade
+      .getContainer()
+      .resolve('axiosCleanInstanceFluig');
+  }
 
-  async execute(username: string, password: string) {
-    const cookies: string[] = await this.getCredentialsCookies(
-      username,
-      password,
-    );
+  async execute(username: string, password: string): Promise<void> {
+    try {
+      const cookies: string[] = await this.getCredentialsCookies(
+        username,
+        password,
+      );
+      const authorization: string = await this.getAuthorization(cookies);
 
-    const authorization: string = await this.getAuthorization(cookies);
+      // TODO: use celebrate to check received payload attributes
+      const payload = extractPayloadFromJWT<JWTPayloadFluig>(authorization);
 
-    const payload = this.extractPayloadFromJWT<JWTPayloadFluig>(authorization);
+      const fluigUser: IFluigUserModel = plainToInstance(
+        FluigUserModel,
+        payload,
+        { excludeExtraneousValues: true },
+      );
 
-    // Set Bear token to all request to this instance
-    this.axiosInstance.defaults.headers.common = {
-      Authorization: authorization,
-    };
+      const axios = this.axiosFacade.cloneInstance(
+        this.AXIOS_DEFAULT_INSTANCE_NAME,
+        payload.userUUID,
+      );
+      // Set Bear token to all request to this instance
+      axios.defaults.headers.common = {
+        Authorization: authorization,
+      };
 
-    // Register Axios instance to be used in the next requests
-    container.registerInstance<Axios>(payload.userUUID, this.axiosInstance);
+      this.repository.create(fluigUser);
+    } catch (e) {
+      throw new Error(`${e}`);
+    }
   }
 
   /**
-   * Get credentials cookies to given user
+   * Get credential cookies for informed user
    * @param username
    * @param password
    * @private
@@ -63,7 +88,7 @@ export default class AuthorizeUserService {
     // Get Cookies
     const {
       headers: { 'set-cookie': setCookie },
-    } = await this.axiosInstance.post(
+    } = await this.AXIOS_DEFAULT_INSTANCE.post(
       'portal/api/servlet/login.do',
       params.toString(),
     );
@@ -74,7 +99,7 @@ export default class AuthorizeUserService {
   }
 
   /**
-   * Get Authorization Bear Token from headers given cookies credentials
+   * Get Authorization Bear Token from headers given credential cookies
    * @param cookies
    * @private
    * @author Eric Ambiel
@@ -82,7 +107,7 @@ export default class AuthorizeUserService {
   private async getAuthorization(cookies: string[]): Promise<string> {
     const {
       headers: { authorization },
-    } = await this.axiosInstance.get('portal/api/servlet/login.do', {
+    } = await this.AXIOS_DEFAULT_INSTANCE.get('portal/api/servlet/login.do', {
       headers: {
         Cookie: cookies.toString(),
       },
@@ -91,18 +116,5 @@ export default class AuthorizeUserService {
     if (authorization) return authorization;
 
     throw Error('Not possible acquire authorization from server');
-  }
-
-  /**
-   * Extract payload from given JWT
-   * @param jWT
-   * @private
-   * @author Eric Ambiel
-   */
-  private extractPayloadFromJWT<T>(jWT: string): T {
-    // Convert JWT Token to payload
-    const jWTSplit = jWT.split('.')[1];
-    const decodedJWTSplit = Buffer.from(jWTSplit, 'base64').toString();
-    return <T>JSON.parse(decodedJWTSplit);
   }
 }

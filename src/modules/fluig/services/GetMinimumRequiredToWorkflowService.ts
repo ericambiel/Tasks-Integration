@@ -1,4 +1,4 @@
-import { Axios, AxiosInstance } from 'axios';
+import { Axios } from 'axios';
 
 import { inject, injectable } from 'tsyringe';
 import { DatasetsDTO } from '@modules/fluig/dtos/DatasetsDTO';
@@ -42,7 +42,7 @@ export default class GetMinimumRequiredToWorkflowService {
       order: null,
     };
 
-  constructor(@inject(Axios) private axios: AxiosInstance) {}
+  constructor(@inject(Axios) private axios: Axios) {}
 
   // TODO: Leave this to facade or helper
   async getManagerOMOP(oMOP: string, searchFor: NameFnEnum) {

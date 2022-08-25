@@ -13,7 +13,7 @@ eventEmitter.on('loadUsersTokenFiles', () =>
 /** @author Eric Ambiel */
 @singleton<IGoogleUserRepository>()
 export default class GoogleUserRepository implements IGoogleUserRepository {
-  private userTokenInfo: UserTokenInfo[];
+  private usersTokenInfo: UserTokenInfo[];
 
   constructor(
     @inject('tokensPath')
@@ -36,7 +36,7 @@ export default class GoogleUserRepository implements IGoogleUserRepository {
   private async loadUsersTokenFiles(tokensPath: string): Promise<void> {
     // Get stored token from JSON file
     // TODO: Verify type of file, use JOY/Celebrate
-    this.userTokenInfo = await this.fileHandler.readJSONFilesInDir(tokensPath);
+    this.usersTokenInfo = await this.fileHandler.readJSONFilesInDir(tokensPath);
   }
 
   /**
@@ -56,28 +56,24 @@ export default class GoogleUserRepository implements IGoogleUserRepository {
       });
   }
 
-  /** @author Eric Ambiel */
   deleteBySub(sub: string): void {
     throw new Error(`${sub} - This function not implemented eat`);
   }
 
-  /** @author Eric Ambiel */
   findBySub(sub: string): UserTokenInfo {
-    const userToken = this.userTokenInfo.find(
+    const userToken = this.usersTokenInfo.find(
       userTokenInfo => userTokenInfo.token_info.sub === sub,
     );
     if (userToken) return userToken;
     throw new Error(`Informed sub: ${sub} was not found`);
   }
 
-  /** @author Eric Ambiel */
   list(): UserTokenInfo[] {
-    return this.userTokenInfo;
+    return this.usersTokenInfo;
   }
 
-  /** @author Eric Ambiel */
   save(userInfoToken: UserTokenInfo): void {
-    this.userTokenInfo.push(userInfoToken);
+    this.usersTokenInfo.push(userInfoToken);
     this.saveTokenOnDisk(userInfoToken).then();
   }
 }

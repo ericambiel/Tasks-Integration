@@ -1106,7 +1106,7 @@ const spreadsheetArrayObjMock = [
   },
 ];
 
-// TODO: Use Joy to validade exactly kinds values
+// TODO: Create schema and use Joy to validade exactly kinds values(Useful to be used on celebrate too)
 const spreadsheetTestSchema = {
   Fluig: expect.any(String),
   Cliente: expect.any(String),

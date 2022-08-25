@@ -19,12 +19,6 @@ export default class AuthorizeGoogleClientServer {
     'https://www.googleapis.com/auth/spreadsheets.readonly',
   ];
 
-  private readonly getAuthUrl = (oAuth2Client: OAuth2Client) =>
-    this.googleAPI.getAuthUrl(oAuth2Client, {
-      askPermission: true,
-      scopes: this.SCOPES,
-    });
-
   constructor(
     @inject(GoogleAPIFacade)
     private googleAPI: GoogleAPIFacade,
@@ -54,5 +48,12 @@ export default class AuthorizeGoogleClientServer {
       );
       throw Error(this.getAuthUrl(oAuth2Client));
     }
+  }
+
+  private getAuthUrl(oAuth2Client: OAuth2Client) {
+    return this.googleAPI.getAuthUrl(oAuth2Client, {
+      askPermission: true,
+      scopes: this.SCOPES,
+    });
   }
 }

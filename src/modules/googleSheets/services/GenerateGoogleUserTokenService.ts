@@ -1,6 +1,7 @@
 import { inject, singleton } from 'tsyringe';
 import GoogleAPIFacade from '@shared/facades/GoogleAPIFacade';
 import { OAuth2Client } from 'google-auth-library';
+import { IGoogleUserRepository } from '@modules/googleSheets/infra/local/repositories/IGoogleUserRepository';
 import GoogleUserRepository from '../infra/local/repositories/GoogleUserRepository';
 
 type GenerateGoogleUserTokenServiceOption = {
@@ -16,7 +17,7 @@ export default class GenerateGoogleUserTokenService {
     @inject(GoogleAPIFacade)
     private googleAPI: GoogleAPIFacade,
     @inject(GoogleUserRepository)
-    private repository: GoogleUserRepository,
+    private repository: IGoogleUserRepository,
     @inject(OAuth2Client)
     private oAuth2Client: OAuth2Client,
   ) {}

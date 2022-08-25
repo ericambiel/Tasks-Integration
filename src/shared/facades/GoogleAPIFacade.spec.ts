@@ -14,6 +14,7 @@ describe('Unit Test - GoogleSeviceFacade', () => {
   const validationTokenCode =
     '4/0AdQt8qgdTphw7k0Hfok3TpJjXDsSctG2m2kxGEWtzCurhWR1_PYUz1qs2rvHbLOSlr5Ptw';
 
+  // TODO: Create schema and use Joy to validade exactly kinds values(Useful to be used on celebrate too)
   const userTokenInfoSchema: UserTokenInfo = {
     refresh_token: expect.any(String),
     scope: expect.any(String),
