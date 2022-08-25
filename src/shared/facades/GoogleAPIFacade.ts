@@ -1,7 +1,7 @@
 import IGoogleSheetsFacade from '@shared/facades/IGoogleSheetsFacade';
 import { Credentials, LoginTicket, OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
-import { container, inject, singleton } from 'tsyringe';
+import { container, DependencyContainer, inject, singleton } from 'tsyringe';
 import FilesHandlerHelper from '@shared/helpers/FilesHandlerHelper';
 import { GenerateAuthUrlOpts } from 'google-auth-library/build/src/auth/oauth2client';
 import { arrayArrayToObjArrayHead } from '@shared/helpers/smallHelper';
@@ -42,7 +42,7 @@ export type GetAuthUrlOption = {
   scopes:
     | GenerateAuthUrlOpts['scope']
     | [
-        'https://www.googleapis.com/auth/spreadsheets.readonly', // Need to access spreadsheet
+        'https://www.googleapis.com/auth/spreadsheets.readonly', // Needed to access spreadsheet
         'https://www.googleapis.com/auth/userinfo.profile', // Get same information from profile, like user_id
       ];
   /** Prompt permission even if had it already, useful to get "refresh_token" again */
@@ -51,17 +51,23 @@ export type GetAuthUrlOption = {
 
 @singleton()
 export default class GoogleAPIFacade implements IGoogleSheetsFacade {
+  private oAuth2ClientContainer: DependencyContainer;
+
   constructor(
     @inject(FilesHandlerHelper)
     private filesHandlerHelper: FilesHandlerHelper,
-  ) {}
+  ) {
+    this.oAuth2ClientContainer = container.createChildContainer();
+  }
 
   /**
-   * Create an OAuth2 client with the given credentials.
+   * Create an OAuth2 client with the given credentials. Use clientId
+   * to locate instance in tsyringe
    * P.S. if given only client credentials need set token before.
    * @param serviceCredentials The authorization client credentials.
+   * @author Eric Ambiel
    */
-  clientFactor(serviceCredentials: GoogleClientCredential): OAuth2Client {
+  oAuth2ClientFactor(serviceCredentials: GoogleClientCredential): OAuth2Client {
     const {
       client_secret: clientSecret,
       client_id: clientId,
@@ -73,7 +79,10 @@ export default class GoogleAPIFacade implements IGoogleSheetsFacade {
       redirectURIs[0],
     );
 
-    container.registerInstance<OAuth2Client>(clientId, oAuth2Client);
+    this.oAuth2ClientContainer.registerInstance<OAuth2Client>(
+      clientId,
+      oAuth2Client,
+    );
 
     return oAuth2Client;
   }

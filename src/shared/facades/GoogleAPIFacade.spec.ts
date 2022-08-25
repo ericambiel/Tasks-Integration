@@ -3,8 +3,8 @@ import { container } from 'tsyringe';
 import GoogleAPIFacade from '@shared/facades/GoogleAPIFacade';
 import { OAuth2Client } from 'google-auth-library';
 
+import { UserTokenInfo } from '@modules/googleSheets/infra/local/repositories/IGoogleUserRepository';
 import CLIENT_SECRET from '../../misc/clients/client_secret_331108598412-fmcfkud7cm6hv4qvjc21g37ormjob0qu.apps.googleusercontent.com.json';
-import { UserTokenInfo } from '../../modules/googleSheets/infra/local/repositories/IGoogleUserRepository';
 
 describe('Unit Test - GoogleSeviceFacade', () => {
   let googleServiceFacade: GoogleAPIFacade;
@@ -39,7 +39,7 @@ describe('Unit Test - GoogleSeviceFacade', () => {
   });
 
   it('Should be possible create an OAuth2Client', async () => {
-    oAuth2Client = googleServiceFacade.clientFactor(CLIENT_SECRET);
+    oAuth2Client = googleServiceFacade.oAuth2ClientFactor(CLIENT_SECRET);
   });
 
   it('Should be possible get new token to Google User', async () => {
@@ -50,7 +50,7 @@ describe('Unit Test - GoogleSeviceFacade', () => {
 
     const tokenInfo = await googleServiceFacade.getTokenInformation(
       oAuth2Client,
-      newToken.access_token!,
+      newToken.access_token ?? '',
     );
 
     const newTokenInfoUser: UserTokenInfo = {

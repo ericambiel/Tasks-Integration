@@ -32,7 +32,7 @@ export default class GoogleClientRepository implements IGoogleClientRepository {
       // Register all loaded clients.
       // P.S.: Clients are registered by theirs "client_id" credential
       this.clientsCredential.forEach(clientCredential =>
-        this.googleServices.clientFactor(clientCredential),
+        this.googleServices.oAuth2ClientFactor(clientCredential),
       );
       eventEmitter.emit('loadClientsCredentialFileOK');
     });
@@ -84,7 +84,7 @@ export default class GoogleClientRepository implements IGoogleClientRepository {
 
   create(client: GoogleClientCredential): void {
     this.clientsCredential.push(client);
-    this.googleServices.clientFactor(client);
+    this.googleServices.oAuth2ClientFactor(client);
     this.saveClientCredentialOnDisk(client).then();
   }
 }
