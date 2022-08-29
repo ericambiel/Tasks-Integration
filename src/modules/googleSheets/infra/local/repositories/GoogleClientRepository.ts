@@ -4,7 +4,7 @@ import GoogleAPIFacade, {
 import { OAuth2Client } from 'google-auth-library';
 import { inject, singleton } from 'tsyringe';
 import FilesHandlerHelper from '@shared/helpers/FilesHandlerHelper';
-import InstanceManagerHelper from '@shared/helpers/InstanceManagerHelper';
+import ContainerManagerHelper from '@shared/helpers/ContainerManagerHelper';
 import { EventEmitter } from 'events';
 import { IGoogleClientRepository } from './IGoogleClientRepository';
 
@@ -75,7 +75,7 @@ export default class GoogleClientRepository implements IGoogleClientRepository {
 
   // TODO: Test if instance doesn't exists, throw error
   findById(clientId: string): OAuth2Client {
-    return InstanceManagerHelper.getInstanceById(clientId);
+    return ContainerManagerHelper.getInstanceById(clientId);
   }
 
   list(): GoogleClientCredential[] {

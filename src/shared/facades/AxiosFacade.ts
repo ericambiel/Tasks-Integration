@@ -1,15 +1,15 @@
-import { container, singleton } from 'tsyringe';
+import { singleton } from 'tsyringe';
 import axios, { Axios, AxiosInstance, AxiosRequestConfig } from 'axios';
-import InstanceManagerHelper from '@shared/helpers/InstanceManagerHelper';
+import ContainerManagerHelper from '@shared/helpers/ContainerManagerHelper';
 
 type OptionAxiosInstance = {
-  instanceId: string;
   baseURL: string;
-  Origin?: string;
+  Origin: string;
+  instanceId?: string;
 };
 
 @singleton()
-export default class AxiosFacade extends InstanceManagerHelper<Axios> {
+export default class AxiosFacade extends ContainerManagerHelper<Axios> {
   private axiosConfig: AxiosRequestConfig = {
     // set-cookies automatically to all requests(doesn't work)  https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/withCredentials
     // // withCredentials: true,
@@ -19,11 +19,8 @@ export default class AxiosFacade extends InstanceManagerHelper<Axios> {
     },
   };
 
-  // private readonly axiosContainer: DependencyContainer;
-
   constructor() {
-    super(container.createChildContainer());
-    // this.axiosContainer = container.createChildContainer();
+    super();
   }
 
   axiosFactor(options: OptionAxiosInstance) {
@@ -33,11 +30,9 @@ export default class AxiosFacade extends InstanceManagerHelper<Axios> {
       headers: { Origin: options.Origin ?? false, ...this.axiosConfig.headers },
     });
 
-    this.getContainer().registerInstance<Axios>(
-      options.instanceId,
-      axiosInstance,
-    );
+    if (options.instanceId)
+      this.container.registerInstance<Axios>(options.instanceId, axiosInstance);
 
-    // return axiosInstance;
+    return axiosInstance;
   }
 }

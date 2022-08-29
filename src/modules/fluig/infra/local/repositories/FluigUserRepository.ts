@@ -10,6 +10,12 @@ export default class FluigUserRepository implements IFluigUserRepository {
   /** Array with registered Fluig users to this API */
   private fluigUsers: IFluigUserModel[] = [];
 
+  // constructor(
+  //     /** Array with registered Fluig users to this API */
+  //     @injectAll('IFluigUserModel')
+  //     private fluigUsers: FluigUserModel[],
+  // ) {}
+
   create(user: FluigUserModel): void {
     this.fluigUsers.push(user);
   }

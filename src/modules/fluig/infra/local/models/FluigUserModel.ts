@@ -1,4 +1,5 @@
 import { Expose } from 'class-transformer';
+import { injectable } from 'tsyringe';
 
 export interface IFluigUserModel {
   sub: string;
@@ -12,6 +13,7 @@ export interface IFluigUserModel {
   userTimeZone: string;
 }
 
+@injectable()
 export class FluigUserModel implements IFluigUserModel {
   @Expose()
   sub: string;

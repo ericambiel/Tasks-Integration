@@ -1,11 +1,11 @@
 import 'reflect-metadata';
 
 import { container } from 'tsyringe';
-import AxiosFacade from '@shared/facades/AxiosFacade';
 import AuthorizeUserService from '@modules/fluig/services/AuthorizeUserService';
 import { IFluigUserRepository } from '@modules/fluig/infra/local/repositories/IFluigUserRepository';
 import FluigUserRepository from '@modules/fluig/infra/local/repositories/FluigUserRepository';
 import { IFluigUserModel } from '@modules/fluig/infra/local/models/FluigUserModel';
+import { registerAxiosCleanInstanceFluigTest } from '@shared/__test__/helper.test';
 
 describe('Unit test - AuthorizeUserService', () => {
   let service: AuthorizeUserService;
@@ -25,11 +25,7 @@ describe('Unit test - AuthorizeUserService', () => {
   };
 
   beforeAll(() => {
-    container.resolve(AxiosFacade).axiosFactor({
-      baseURL: process.env.FLUIG_BASEURL ?? '',
-      Origin: process.env.FLUIG_ORIGIN ?? '',
-      instanceId: 'axiosCleanInstanceFluig',
-    });
+    registerAxiosCleanInstanceFluigTest();
 
     repository = container.resolve<IFluigUserRepository>(FluigUserRepository);
 
