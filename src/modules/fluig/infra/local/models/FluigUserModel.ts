@@ -1,5 +1,8 @@
-import { Expose } from 'class-transformer';
+import { Exclude, Expose } from 'class-transformer';
 import { injectable } from 'tsyringe';
+import FluigUserInfoModel, {
+  IFluigUserInfoModel,
+} from '@modules/fluig/infra/local/models/FluigUserInfoModel';
 
 export interface IFluigUserModel {
   sub: string;
@@ -11,8 +14,10 @@ export interface IFluigUserModel {
   tenantUUID: string;
   lastUpdateDate: number;
   userTimeZone: string;
+  userInfo: IFluigUserInfoModel;
 }
 
+@Exclude()
 @injectable()
 export class FluigUserModel implements IFluigUserModel {
   @Expose()
@@ -41,4 +46,7 @@ export class FluigUserModel implements IFluigUserModel {
 
   @Expose()
   userTimeZone: string;
+
+  @Expose()
+  userInfo: FluigUserInfoModel;
 }

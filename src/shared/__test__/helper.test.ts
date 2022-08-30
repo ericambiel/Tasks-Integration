@@ -10,6 +10,47 @@ import {
 } from '@modules/fluig/infra/local/models/FluigUserModel';
 import { plainToInstance } from 'class-transformer';
 import RegisterUserService from '@modules/fluig/services/RegisterUserService';
+import GetUserInformation from '@modules/fluig/services/GetUserInformation';
+
+function treatAxios(axios: Axios) {
+  axios.interceptors.request.use(req => {
+    const headers = {
+      // @ts-ignore
+      ...req.headers.common,
+      // @ts-ignore
+      ...req.headers[req.method],
+      ...req.headers,
+    };
+
+    ['common', 'get', 'post', 'head', 'put', 'patch', 'delete'].forEach(
+      header => {
+        delete headers[header];
+      },
+    );
+
+    const printable = `${new Date()} | Request: ${req.method?.toUpperCase()} | ${
+      req.url
+    }\n-- HEADERS --\n${JSON.stringify(
+      headers,
+      null,
+      2,
+    )}\n-- DATA --\n${JSON.stringify(req.data, null, 2)}`;
+
+    console.log(printable);
+
+    return req;
+  });
+
+  axios.interceptors.response.use(res => {
+    const printable = `${new Date()} | Response: ${
+      res.status
+    }\n--DATA--\n${JSON.stringify(res.data, null, 2)}`;
+
+    console.log(printable);
+
+    return res;
+  });
+}
 
 export function registerAxiosCleanInstanceFluigTest() {
   return container.resolve(AxiosFacade).axiosFactor({
@@ -19,11 +60,11 @@ export function registerAxiosCleanInstanceFluigTest() {
   });
 }
 
-export async function authorizedUserAxiosFluig() {
+export async function authorizeUserAxiosFluig() {
   // Create clean instance Axios
   const cleanAxios = registerAxiosCleanInstanceFluigTest();
 
-  // Register instance to be used in AuthorizeUserService
+  // Register instance to be used in FluigAPIHelper
   container.registerInstance(Axios, cleanAxios);
 
   // Autorize Fluig User
@@ -38,10 +79,12 @@ export async function authorizedUserAxiosFluig() {
   const fluigUser: IFluigUserModel = plainToInstance(
     FluigUserModel,
     authorization,
-    {
-      excludeExtraneousValues: true,
-    },
   );
+
+  // Get more information about User
+  fluigUser.userInfo = await container
+    .resolve(GetUserInformation)
+    .execute(fluigUser.sub);
 
   // Register User in the system (Repository and Axios)
   // container.register<IFluigUserModel[]>('IFluigUserModel', {
@@ -61,20 +104,7 @@ export async function authorizedUserAxiosFluig() {
     .resolve(AxiosFacade)
     .container.resolve<Axios>(registeredUsers[0].userUUID);
 
-  //
-  axiosAuthorizedClient.interceptors.request.use(request => {
-    console.log(
-      `--- axiosClient Request ---\n${JSON.stringify(request, null, 2)}`,
-    );
-    return request;
-  });
-
-  axiosAuthorizedClient.interceptors.response.use(response => {
-    console.log(
-      `--- axiosClient Response ---\n${JSON.stringify(response, null, 2)}`,
-    );
-    return response;
-  });
+  treatAxios(axiosAuthorizedClient);
 
   return axiosAuthorizedClient;
 }

@@ -1,4 +1,3 @@
-import { TaskDTO } from '@modules/fluig/dtos/TaskDTO';
 import { TaskSerializedDTO } from './TaskSerializedDTO';
 
 /**
@@ -31,7 +30,7 @@ export type TaskFormDataDTO = [
     /**
      * All tasks value here in JSON format string (stringify)
      */
-    value: TaskDTO[];
+    value: string;
   },
   {
     name: 'apontamentosAprovados';

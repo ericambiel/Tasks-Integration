@@ -1,4 +1,4 @@
-export type DatasetsDTO = {
+export type DatasetReqDTO = {
   /** Function name of Dataset functions to call at Fluig */
   name: string;
   fields: null;
