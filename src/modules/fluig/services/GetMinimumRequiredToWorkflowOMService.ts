@@ -3,27 +3,26 @@ import { TaskFormDataDTO } from '@modules/fluig/dtos/TaskFormDataDTO';
 import { TaskDTO } from '@modules/fluig/dtos/TaskDTO';
 import { IFluigUserModel } from '@modules/fluig/infra/local/models/FluigUserModel';
 import FluigAPIHelper, { NameFnEnum } from '@shared/helpers/FluigAPIHelper';
+import { FormPropertyDTO } from '@modules/fluig/dtos/FormPropertyDTO';
 
 @injectable()
-export default class GetMinimumRequiredToWorkflowService {
+export default class GetMinimumRequiredToWorkflowOMService {
   constructor(
     @inject(FluigAPIHelper)
     private fluigAPIHelper: FluigAPIHelper,
   ) {}
 
   async execute(
-    tasks: TaskDTO[],
     user: IFluigUserModel,
-    oMOP: string,
-    searchFor: NameFnEnum.OP | NameFnEnum.OM,
     technicianCode: string,
+    oM: string,
+    tasks: TaskDTO[],
+    descriptionWorkFlow: string,
   ) {
-    const manager = await this.fluigAPIHelper.getManagerOMOP(oMOP, searchFor);
+    const manager = await this.fluigAPIHelper.getManagerOMOP(oM, NameFnEnum.OM);
     const technician = await this.fluigAPIHelper.getTechnician(technicianCode);
 
-    // TODO: Stop here, need implementing integration(module) services ande controller
-
-    const taskFormData: TaskFormDataDTO = [
+    return <TaskFormDataDTO>[
       {
         name: 'gerente',
         value: manager.content.values[0].nomeGestor,
@@ -66,20 +65,21 @@ export default class GetMinimumRequiredToWorkflowService {
       },
       {
         name: 'dataSolicitacao',
-        value: new Date().toLocaleDateString('pt-BR'),
+        value: new Intl.DateTimeFormat('pt-BR', {
+          timeZone: user.userTimeZone,
+          dateStyle: 'short',
+        }).format(new Date()),
       },
       {
         name: 'txtHoraSolicitacao',
-        value: new Date().toLocaleTimeString('pt-BR'),
-        // value: new Intl.DateTimeFormat('pt-BR', {
-        //   timeZone: 'America/Sao_Paulo',
-        //   dateStyle: 'short',
-        //   timeStyle: 'short',
-        // }).format(new Date()),
+        value: new Intl.DateTimeFormat('pt-BR', {
+          timeZone: user.userTimeZone,
+          timeStyle: 'short',
+        }).format(new Date()),
       },
       {
         name: 'tipoApontamento',
-        value: Object.keys(searchFor).toString(),
+        value: 'OM',
       },
       {
         name: 'codTecnico',
@@ -91,7 +91,7 @@ export default class GetMinimumRequiredToWorkflowService {
       },
       {
         name: 'atividades',
-        value: string,
+        value: descriptionWorkFlow,
       },
       {
         name: 'observacoes',
@@ -197,7 +197,29 @@ export default class GetMinimumRequiredToWorkflowService {
         name: 'aprovadoAprovacaoCheckbox',
         value: '',
       },
-      // ...TaskSerializedDTO,
+      ...this.getFormProperties(tasks),
     ];
+  }
+
+  getFormProperties(
+    objs: Record<string, string> | Record<string, string>[],
+  ): FormPropertyDTO[] {
+    const newNameKey = (key: string, idx: number) => `${key}___${idx + 1}`;
+
+    if (Array.isArray(objs))
+      return objs
+        .map((obj, idx, array) =>
+          Object.keys(obj).map(key => ({
+            name: newNameKey(key, idx),
+            value: array[idx][<keyof typeof obj>key],
+          })),
+        )
+        .flat();
+
+    return Object.keys(objs).map(key => ({
+      name: newNameKey(key, 0),
+      // https://bobbyhadz.com/blog/typescript-no-index-signature-with-parameter-of-type-string#:~:text=The%20error%20%22No%20index%20signature,keys%20using%20keyof%20typeof%20obj%20.
+      value: objs[<keyof typeof objs>key],
+    }));
   }
 }

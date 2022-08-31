@@ -1,5 +1,3 @@
-import { TaskSerializedDTO } from './TaskSerializedDTO';
-
 /**
  * Object created by a task form at Fluig
  */
@@ -28,7 +26,7 @@ export type TaskFormDataDTO = [
   {
     name: 'apontamentosRealizadosJson';
     /**
-     * All tasks value here in JSON format string (stringify)
+     * All tasks {TaskDTO[]} value here in JSON format string (stringify)
      */
     value: string;
   },
@@ -211,5 +209,5 @@ export type TaskFormDataDTO = [
   // Here need get all properties from "taskJSON" array
   // and add "___realizadoId" in each key object name
   //
-  ...TaskSerializedDTO,
+  // ...TaskSerializedDTO,
 ];

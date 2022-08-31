@@ -1,13 +1,13 @@
-import GoogleSheetToFluigWFService from '@modules/integration/services/GoogleSheetToFluigWFTService';
 import { inject } from 'tsyringe';
+import GetMinimumRequiredToWorkflowOMService from '@modules/fluig/services/GetMinimumRequiredToWorkflowOMService';
 
 export default class IntegrationController {
   constructor(
-    @inject(GoogleSheetToFluigWFService)
-    private googleSheetToFluigService: GoogleSheetToFluigWFService,
+    @inject(GetMinimumRequiredToWorkflowOMService)
+    private service: GetMinimumRequiredToWorkflowOMService,
   ) {}
 
   createWorkflowFluig(): void {
-    this.googleSheetToFluigService.execute();
+    // this.googleSheetToFluigService.execute();
   }
 }
