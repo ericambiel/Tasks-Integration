@@ -44,3 +44,12 @@ export function extractPayloadFromJWT<T>(jWT: string): T {
   const decodedJWTSplit = Buffer.from(jWTSplit, 'base64').toString();
   return <T>JSON.parse(decodedJWTSplit);
 }
+
+export function stringToEnum<T>(
+  enm: { [s: string]: T },
+  value: string,
+): T | undefined {
+  if ((Object.values(enm) as unknown as string[]).includes(value))
+    return value as unknown as T;
+  return undefined;
+}
