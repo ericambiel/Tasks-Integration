@@ -1,8 +1,9 @@
-import { Credentials, TokenInfo } from 'google-auth-library';
+import { Credentials } from 'google-auth-library';
+import GoogleUserInformationModel from '@modules/googleSheets/infra/local/models/GoogleUserInformationModel';
 
 /** @author Eric Ambiel */
 export type UserTokenInfo = Credentials & {
-  token_info: TokenInfo & { exp: string };
+  user_information: GoogleUserInformationModel;
 };
 
 /** @author Eric Ambiel */

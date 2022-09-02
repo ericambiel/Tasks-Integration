@@ -1,6 +1,8 @@
 /**
  * Object created by a task form at Fluig
  */
+import { ISpreadsheetOMOPModel } from '@modules/googleSheets/infra/local/models/SpreadsheetOMOPModel';
+
 export type TaskFormDataDTO = [
   {
     name: 'gerente';
@@ -76,7 +78,7 @@ export type TaskFormDataDTO = [
   {
     name: 'tipoApontamento';
     /* Type of project task in */
-    value: 'OM' | 'OP';
+    value: ISpreadsheetOMOPModel['projectType'];
   },
   {
     name: 'codTecnico';

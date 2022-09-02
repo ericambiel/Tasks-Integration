@@ -10,13 +10,13 @@ import clientCredential from '../../../misc/clients/client_secret_331108598412-f
 describe('Unit test - GenerateGoogleUserTokenService.spec.ts', () => {
   /** Get this code by running AuthorizeGoogleUserService.spec */
   const validationTokenCode =
-    '4/0AdQt8qgSeXoPsvAuRn-q-iYFqQy7OtifyfP1aJxATPRIhvo33TVwM5j8kOpoSVg82xJGGw';
+    '4/0AdQt8qizCKEMgMQSz2YS69FgMmyRgxJkVuw8JhZURX_PjaeFiOI6TQWnbufNjwQ-w5sbPQ';
 
   const {
     web: {
       client_id: clientId,
       client_secret: clientSecret,
-      redirect_uris: [RedirectUri],
+      redirect_uris: [redirectUri],
     },
   } = <GoogleClientCredential>clientCredential;
 
@@ -27,7 +27,7 @@ describe('Unit test - GenerateGoogleUserTokenService.spec.ts', () => {
 
     container.registerInstance(
       OAuth2Client,
-      new OAuth2Client(clientId, clientSecret, RedirectUri),
+      new OAuth2Client(clientId, clientSecret, redirectUri),
     );
 
     generateGoogleUserTokenService = container.resolve(

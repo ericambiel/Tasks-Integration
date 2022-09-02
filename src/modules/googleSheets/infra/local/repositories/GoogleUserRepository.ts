@@ -46,12 +46,12 @@ export default class GoogleUserRepository implements IGoogleUserRepository {
   private async saveTokenOnDisk(userInfoToken: UserTokenInfo) {
     return this.fileHandler
       .writeFile(
-        `${this.tokensPath}/${userInfoToken.token_info.sub}.token.json`,
+        `${this.tokensPath}/${userInfoToken.user_information.sub}.token.json`,
         JSON.stringify(userInfoToken),
       )
       .catch((err: Error) => {
         throw new Error(
-          `Error saving token: "${userInfoToken.token_info.sub}" to disk: ${err}`,
+          `Error saving token: "${userInfoToken.user_information.sub}" to disk: ${err}`,
         );
       });
   }
@@ -62,7 +62,7 @@ export default class GoogleUserRepository implements IGoogleUserRepository {
 
   findBySub(sub: string): UserTokenInfo {
     const userToken = this.usersTokenInfo.find(
-      userTokenInfo => userTokenInfo.token_info.sub === sub,
+      userTokenInfo => userTokenInfo.user_information.sub === sub,
     );
     if (userToken) return userToken;
     throw new Error(`Informed sub: ${sub} was not found`);

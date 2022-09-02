@@ -1,7 +1,7 @@
 import { container, DependencyContainer } from 'tsyringe';
 import cloneDeep from 'lodash.clonedeep';
 
-export default abstract class ContainerManagerHelper<T> {
+export default abstract class ContainerManagerHelper {
   private readonly childContainer: DependencyContainer;
 
   protected constructor() {
@@ -14,11 +14,13 @@ export default abstract class ContainerManagerHelper<T> {
 
   /**
    * Clone instance.
-   * @param fromInstanceId Instance ID to be found in Axios container
+   * @param fromInstanceId Registered instance ID in childContainer
    * @param registerInstanceId New instance ID to be registered on Axios container
    */
-  cloneInstance(fromInstanceId: string, registerInstanceId: string): T {
+  cloneInstance<T>(fromInstanceId: string, registerInstanceId: string): T {
     try {
+      // TODO: Need more tests, used in cloned Axios instance and when calling the function of instance,
+      //  return to the function of the "original" one .Use clone from lodash instead of cloneDeep
       const newInstance = cloneDeep(
         this.childContainer.resolve<T>(fromInstanceId),
       );

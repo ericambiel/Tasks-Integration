@@ -1,11 +1,12 @@
 import IGoogleSheetsFacade from '@shared/facades/IGoogleSheetsFacade';
 import { Credentials, LoginTicket, OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
-import { container, DependencyContainer, inject, singleton } from 'tsyringe';
+import { inject, singleton } from 'tsyringe';
 import FilesHandlerHelper from '@shared/helpers/FilesHandlerHelper';
 import { GenerateAuthUrlOpts } from 'google-auth-library/build/src/auth/oauth2client';
 import { arrayArrayToObjArrayHead } from '@shared/helpers/smallHelper';
 import { UserTokenInfo } from '@modules/googleSheets/infra/local/repositories/IGoogleUserRepository';
+import ContainerManagerHelper from '@shared/helpers/ContainerManagerHelper';
 
 export type GoogleClientCredential = {
   web: {
@@ -50,14 +51,15 @@ export type GetAuthUrlOption = {
 };
 
 @singleton()
-export default class GoogleAPIFacade implements IGoogleSheetsFacade {
-  private oAuth2ClientContainer: DependencyContainer;
-
+export default class GoogleAPIFacade
+  extends ContainerManagerHelper
+  implements IGoogleSheetsFacade
+{
   constructor(
     @inject(FilesHandlerHelper)
     private filesHandlerHelper: FilesHandlerHelper,
   ) {
-    this.oAuth2ClientContainer = container.createChildContainer();
+    super();
   }
 
   /**
@@ -73,16 +75,15 @@ export default class GoogleAPIFacade implements IGoogleSheetsFacade {
       client_id: clientId,
       redirect_uris: redirectURIs,
     } = serviceCredentials.web;
-    const oAuth2Client = new OAuth2Client(
+    const oAuth2Client = new OAuth2Client({
       clientId,
       clientSecret,
-      redirectURIs[0],
-    );
+      redirectUri: redirectURIs[0],
+      forceRefreshOnFailure: true,
+      eagerRefreshThresholdMillis: 3300000, // Refresh user token every 55 minutes
+    });
 
-    this.oAuth2ClientContainer.registerInstance<OAuth2Client>(
-      clientId,
-      oAuth2Client,
-    );
+    super.container.registerInstance<OAuth2Client>(clientId, oAuth2Client);
 
     return oAuth2Client;
   }
@@ -132,7 +133,7 @@ export default class GoogleAPIFacade implements IGoogleSheetsFacade {
   getTokenInformation(
     oAuth2Client: OAuth2Client,
     accessToken: string,
-  ): Promise<UserTokenInfo['token_info']> {
+  ): Promise<UserTokenInfo['user_information']> {
     return oAuth2Client.getTokenInfo(accessToken).then();
   }
 

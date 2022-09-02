@@ -5,31 +5,33 @@ import { GoogleClientCredential } from '@shared/facades/GoogleAPIFacade';
 import { OAuth2Client } from 'google-auth-library';
 import { sleep } from '@shared/helpers/smallHelper';
 import clientCredential from '../../../misc/clients/client_secret_331108598412-fmcfkud7cm6hv4qvjc21g37ormjob0qu.apps.googleusercontent.com.json';
+import userToken from '../../../misc/tokens/108866897033893388302.token.json';
 import GetSpreadsheetService from './GetSpreadsheetService';
 
 describe('Unit teste - GetSpreadsheetService', () => {
   let service: GetSpreadsheetService;
 
-  const SPREAD_SHEET = '16UHClMZfSwXvDPECG1oerd-pfD-pWC5cugrotqq_TQQ';
-  const RANGE = 'Horas!A2:G';
-  const GUSER = '108866897033893388302';
-  const CLIENT_ID = clientCredential.web.client_id;
+  const SPREAD_SHEET = '1uYLY1xtGQRqPeaUMzzmuVM5vb_fYP8qwDjiS1rb0EjE';
+  const RANGE = 'Horas!A2:H';
 
   const {
     web: {
       client_id: clientId,
       client_secret: clientSecret,
-      redirect_uris: [RedirectUri],
+      redirect_uris: [redirectUri],
     },
   } = <GoogleClientCredential>clientCredential;
 
   beforeAll(() => {
-    container.register('tokensPath', { useValue: 'src/misc/tokens' });
+    const oAuth2Client = new OAuth2Client({
+      clientId,
+      clientSecret,
+      redirectUri,
+      // forceRefreshOnFailure: true,
+    });
+    oAuth2Client.setCredentials({ refresh_token: userToken.refresh_token });
 
-    container.registerInstance(
-      OAuth2Client,
-      new OAuth2Client(clientId, clientSecret, RedirectUri),
-    );
+    container.registerInstance(OAuth2Client, oAuth2Client);
 
     service = container.resolve(GetSpreadsheetService);
   });
@@ -38,8 +40,6 @@ describe('Unit teste - GetSpreadsheetService', () => {
     await sleep(50);
 
     const sheet = await service.execute({
-      sub: GUSER,
-      clientId: CLIENT_ID,
       range: RANGE,
       spreadsheetId: SPREAD_SHEET,
     });

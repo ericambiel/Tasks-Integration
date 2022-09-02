@@ -21,7 +21,7 @@ describe('Unit Test - GoogleSeviceFacade', () => {
     token_type: 'Bearer',
     id_token: expect.any(String),
     expiry_date: expect.any(Number),
-    token_info: {
+    user_information: {
       expiry_date: expect.any(Number),
       scopes: expect.arrayContaining([
         'https://www.googleapis.com/auth/spreadsheets.readonly',
@@ -56,7 +56,7 @@ describe('Unit Test - GoogleSeviceFacade', () => {
 
     const newTokenInfoUser: UserTokenInfo = {
       ...newToken,
-      token_info: tokenInfo,
+      user_information: tokenInfo,
     };
 
     expect(newTokenInfoUser).toMatchObject<UserTokenInfo>(userTokenInfoSchema);

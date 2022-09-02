@@ -39,7 +39,8 @@ export default class AuthorizeGoogleClientServer {
 
     try {
       oAuth2Client.setCredentials(options.userToken);
-      await oAuth2Client.refreshAccessToken(); // After refresh, set too.
+      // It doesn't anymore, API can auto refresh.
+      // await oAuth2Client.refreshAccessToken(); // After refresh, set too.
       // TODO: use this oAuth2Client to update token, need retrieve tokenInfo before update token file
       // return oAuth2Client;
     } catch (err) {

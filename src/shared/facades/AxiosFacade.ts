@@ -9,10 +9,10 @@ type OptionAxiosInstance = {
 };
 
 @singleton()
-export default class AxiosFacade extends ContainerManagerHelper<Axios> {
+export default class AxiosFacade extends ContainerManagerHelper {
   private axiosConfig: AxiosRequestConfig = {
     // set-cookies automatically to all requests(doesn't work)  https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/withCredentials
-    // // withCredentials: true,
+    // withCredentials: true, // Doesn't work here, could be diferente call domain
     headers: {
       'User-Agent':
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36',
@@ -31,7 +31,10 @@ export default class AxiosFacade extends ContainerManagerHelper<Axios> {
     });
 
     if (options.instanceId)
-      this.container.registerInstance<Axios>(options.instanceId, axiosInstance);
+      super.container.registerInstance<Axios>(
+        options.instanceId,
+        axiosInstance,
+      );
 
     return axiosInstance;
   }

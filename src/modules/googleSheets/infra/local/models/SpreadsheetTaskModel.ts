@@ -18,7 +18,7 @@ export interface ISpreedSheetTask {
 }
 
 export default class SpreadsheetTaskModel implements ISpreedSheetTask {
-  @Expose({ name: 'Solicitation' })
+  @Expose({ name: 'Solicitação' })
   solicitationId: number;
 
   @Expose({ name: 'Fluig' })

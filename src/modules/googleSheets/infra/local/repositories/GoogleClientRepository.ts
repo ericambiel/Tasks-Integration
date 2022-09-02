@@ -4,7 +4,6 @@ import GoogleAPIFacade, {
 import { OAuth2Client } from 'google-auth-library';
 import { inject, singleton } from 'tsyringe';
 import FilesHandlerHelper from '@shared/helpers/FilesHandlerHelper';
-import ContainerManagerHelper from '@shared/helpers/ContainerManagerHelper';
 import { EventEmitter } from 'events';
 import { IGoogleClientRepository } from './IGoogleClientRepository';
 
@@ -26,13 +25,13 @@ export default class GoogleClientRepository implements IGoogleClientRepository {
     @inject(FilesHandlerHelper)
     private fileHandler: FilesHandlerHelper,
     @inject(GoogleAPIFacade)
-    private googleServices: GoogleAPIFacade,
+    private googleAPI: GoogleAPIFacade,
   ) {
     this.loadClientsCredentialFile(clientCredentialFilePath).then(() => {
       // Register all loaded clients.
       // P.S.: Clients are registered by theirs "client_id" credential
       this.clientsCredential.forEach(clientCredential =>
-        this.googleServices.oAuth2ClientFactor(clientCredential),
+        this.googleAPI.oAuth2ClientFactor(clientCredential),
       );
       eventEmitter.emit('loadClientsCredentialFileOK');
     });
@@ -75,7 +74,7 @@ export default class GoogleClientRepository implements IGoogleClientRepository {
 
   // TODO: Test if instance doesn't exists, throw error
   findById(clientId: string): OAuth2Client {
-    return ContainerManagerHelper.getInstanceById(clientId);
+    return this.googleAPI.container.resolve(clientId);
   }
 
   list(): GoogleClientCredential[] {
@@ -84,7 +83,7 @@ export default class GoogleClientRepository implements IGoogleClientRepository {
 
   create(client: GoogleClientCredential): void {
     this.clientsCredential.push(client);
-    this.googleServices.oAuth2ClientFactor(client);
+    this.googleAPI.oAuth2ClientFactor(client);
     this.saveClientCredentialOnDisk(client).then();
   }
 }
