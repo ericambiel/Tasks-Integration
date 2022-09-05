@@ -1,4 +1,4 @@
-import { TaskDTO } from '../../fluig/dtos/TaskDTO';
+import { TaskDTO } from '../dtos/TaskDTO';
 
 const taskMock: TaskDTO[] = [
   {

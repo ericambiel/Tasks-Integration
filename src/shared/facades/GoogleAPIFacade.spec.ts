@@ -6,7 +6,7 @@ import { OAuth2Client } from 'google-auth-library';
 import { UserTokenInfo } from '@modules/googleSheets/infra/local/repositories/IGoogleUserRepository';
 import CLIENT_SECRET from '../../misc/clients/client_secret_331108598412-fmcfkud7cm6hv4qvjc21g37ormjob0qu.apps.googleusercontent.com.json';
 
-describe('Unit Test - GoogleSeviceFacade', () => {
+describe('Unit Test - GoogleAPIFacade', () => {
   let googleServiceFacade: GoogleAPIFacade;
   let oAuth2Client: OAuth2Client;
 
@@ -22,16 +22,7 @@ describe('Unit Test - GoogleSeviceFacade', () => {
     id_token: expect.any(String),
     expiry_date: expect.any(Number),
     user_information: {
-      expiry_date: expect.any(Number),
-      scopes: expect.arrayContaining([
-        'https://www.googleapis.com/auth/spreadsheets.readonly',
-        'https://www.googleapis.com/auth/userinfo.profile',
-      ]),
-      azp: expect.any(String),
-      aud: expect.any(String),
       sub: expect.any(String),
-      exp: expect.any(String),
-      access_type: 'offline',
     },
   };
 

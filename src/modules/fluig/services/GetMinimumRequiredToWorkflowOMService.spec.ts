@@ -4,7 +4,7 @@ import { container } from 'tsyringe';
 import GetMinimumRequiredToWorkflowOMService from '@modules/fluig/services/GetMinimumRequiredToWorkflowOMService';
 import { authorizeUserAxiosFluig } from '@shared/__test__/helper.test';
 import { Axios } from 'axios';
-import { taskMock } from '@modules/integration/mocks/task.mock';
+import { taskMock } from '@modules/fluig/mocks/task.mock';
 import FluigUserRepository from '@modules/fluig/infra/local/repositories/FluigUserRepository';
 import { NameFnEnum } from '@shared/helpers/FluigAPIHelper';
 
@@ -33,12 +33,19 @@ describe('Unit test - GetMinimumRequiredToWorkflow', () => {
   });
 
   it('should be possible convert an obj to FormProperties', () => {
-    const formProperties = service.getFormProperties(taskMock);
+    const formProperties =
+      // private func
+      Object.getPrototypeOf(service).getFormProperties(taskMock);
+
     console.log(formProperties);
   });
 
   it('should be possible convert an array obj to FormProperties', () => {
-    const formProperties = service.getFormProperties(taskMock[0]);
+    // private func
+    const formProperties = Object.getPrototypeOf(service).getFormProperties(
+      taskMock[0],
+    );
+
     console.log(formProperties);
   });
 });

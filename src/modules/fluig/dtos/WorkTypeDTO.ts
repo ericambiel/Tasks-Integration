@@ -1,4 +1,4 @@
-import { ISpreadsheetOMOPModel } from '@modules/googleSheets/infra/local/models/SpreadsheetOMOPModel';
+import { ISpreadsheetOMOPModel } from '@modules/integration/infra/local/models/SpreadsheetOMOPModel';
 
 export type WorkTypeDTO = {
   /** @example

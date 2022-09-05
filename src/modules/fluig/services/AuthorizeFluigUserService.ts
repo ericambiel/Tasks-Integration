@@ -10,7 +10,7 @@ export type JWTPayloadFluig = IFluigUserModel & {
 };
 
 @injectable()
-export default class AuthorizeUserService {
+export default class AuthorizeFluigUserService {
   constructor(
     @inject(FluigAPIHelper)
     private fluigAPIHelper: FluigAPIHelper,

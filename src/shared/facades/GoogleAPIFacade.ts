@@ -1,5 +1,4 @@
-import IGoogleSheetsFacade from '@shared/facades/IGoogleSheetsFacade';
-import { Credentials, LoginTicket, OAuth2Client } from 'google-auth-library';
+import { Credentials, OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
 import { inject, singleton } from 'tsyringe';
 import FilesHandlerHelper from '@shared/helpers/FilesHandlerHelper';
@@ -29,7 +28,8 @@ export type GetSpreadSheetValuesOption = {
   spreadsheetId: '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms' | string;
   /**
    *  Range of columns and rows
-   *  @example Class Data!A2:E
+   *  @example
+   *  'Class Data!A2:E'
    */
   range: 'Class Data!A2:E' | string;
   /**
@@ -51,10 +51,7 @@ export type GetAuthUrlOption = {
 };
 
 @singleton()
-export default class GoogleAPIFacade
-  extends ContainerManagerHelper
-  implements IGoogleSheetsFacade
-{
+export default class GoogleAPIFacade extends ContainerManagerHelper {
   constructor(
     @inject(FilesHandlerHelper)
     private filesHandlerHelper: FilesHandlerHelper,
@@ -135,17 +132,6 @@ export default class GoogleAPIFacade
     accessToken: string,
   ): Promise<UserTokenInfo['user_information']> {
     return oAuth2Client.getTokenInfo(accessToken).then();
-  }
-
-  verifyUserToken(
-    oAuth2Client: OAuth2Client,
-    idToken: string,
-  ): Promise<LoginTicket> {
-    return oAuth2Client.verifyIdToken({
-      idToken,
-      // eslint-disable-next-line no-underscore-dangle
-      audience: oAuth2Client._clientId,
-    });
   }
 
   /**

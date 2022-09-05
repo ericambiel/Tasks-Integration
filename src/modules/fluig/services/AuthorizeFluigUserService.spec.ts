@@ -1,14 +1,14 @@
 import 'reflect-metadata';
 
 import { container } from 'tsyringe';
-import AuthorizeUserService from '@modules/fluig/services/AuthorizeUserService';
+import AuthorizeFluigUserService from '@modules/fluig/services/AuthorizeFluigUserService';
 import { IFluigUserRepository } from '@modules/fluig/infra/local/repositories/IFluigUserRepository';
 import FluigUserRepository from '@modules/fluig/infra/local/repositories/FluigUserRepository';
 import { IFluigUserModel } from '@modules/fluig/infra/local/models/FluigUserModel';
 import { registerAxiosCleanInstanceFluigTest } from '@shared/__test__/helper.test';
 
 describe('Unit test - AuthorizeUserService', () => {
-  let service: AuthorizeUserService;
+  let service: AuthorizeFluigUserService;
   let repository: IFluigUserRepository;
 
   // TODO: Create schema and use Joy to validade exactly kinds values(Useful to be used on celebrate too)
@@ -29,7 +29,7 @@ describe('Unit test - AuthorizeUserService', () => {
 
     repository = container.resolve<IFluigUserRepository>(FluigUserRepository);
 
-    service = container.resolve(AuthorizeUserService);
+    service = container.resolve(AuthorizeFluigUserService);
   });
 
   it('Should be possible authorize user in Fluig', async () => {

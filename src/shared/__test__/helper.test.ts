@@ -2,7 +2,7 @@ import { container } from 'tsyringe';
 import AxiosFacade from '@shared/facades/AxiosFacade';
 import { IFluigUserRepository } from '@modules/fluig/infra/local/repositories/IFluigUserRepository';
 import FluigUserRepository from '@modules/fluig/infra/local/repositories/FluigUserRepository';
-import AuthorizeUserService from '@modules/fluig/services/AuthorizeUserService';
+import AuthorizeFluigUserService from '@modules/fluig/services/AuthorizeFluigUserService';
 import { Axios } from 'axios';
 import {
   FluigUserModel,
@@ -69,7 +69,7 @@ export async function authorizeUserAxiosFluig() {
 
   // Autorize Fluig User
   const authorization = await container
-    .resolve(AuthorizeUserService)
+    .resolve(AuthorizeFluigUserService)
     .execute(
       process.env.FLUIG_USERNAME ?? '',
       process.env.FLUIG_PASSWORD ?? '',

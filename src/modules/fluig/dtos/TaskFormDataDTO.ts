@@ -1,7 +1,8 @@
 /**
  * Object created by a task form at Fluig
  */
-import { ISpreadsheetOMOPModel } from '@modules/googleSheets/infra/local/models/SpreadsheetOMOPModel';
+import { ISpreadsheetOMOPModel } from '@modules/integration/infra/local/models/SpreadsheetOMOPModel';
+import { FormPropertyDTO } from '@modules/fluig/dtos/FormPropertyDTO';
 
 export type TaskFormDataDTO = [
   {
@@ -212,4 +213,5 @@ export type TaskFormDataDTO = [
   // and add "___realizadoId" in each key object name
   //
   // ...TaskSerializedDTO,
+  ...FormPropertyDTO[],
 ];

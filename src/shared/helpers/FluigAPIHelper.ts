@@ -12,7 +12,7 @@ export enum NameFnEnum {
   TEC = 'totvsBuscaNomeTecnicoAptoDematic',
 }
 
-interface IManagerRes extends DatasetResDTO {
+export interface IManagerRes extends DatasetResDTO {
   content: {
     columns: ['codigoProjeto', 'nomeProjeto', 'nomeGestor'];
     values: [
@@ -25,7 +25,7 @@ interface IManagerRes extends DatasetResDTO {
   };
 }
 
-interface ITechnician extends DatasetResDTO {
+export interface ITechnicianRes extends DatasetResDTO {
   content: {
     columns: ['nomeTecnico'];
     values: [
@@ -141,7 +141,7 @@ export default class FluigAPIHelper {
   }
 
   getTechnician(technicianCode: string) {
-    return this.getDataSet<ITechnician>(technicianCode, NameFnEnum.TEC).then(
+    return this.getDataSet<ITechnicianRes>(technicianCode, NameFnEnum.TEC).then(
       res => res.data,
     );
   }

@@ -27,11 +27,11 @@ export default class AuthorizeGoogleClientServer {
   ) {}
 
   /**
-   * Try to authorize client server with user token or return URL to authorize client server.
+   * Try to authorize client server with user token.
    * @param options
    * @return {Promise<string | OAuth2Client>} Instance of OAuth2Client or URL to authorize client server to access user.
    * @author Eric Ambiel
-   * @throws Case something wrong return URL to authorize client server to access user.
+   * @throws Case something wrong throw a URL to authorize client server to access user.
    *
    */
   async execute(options: AuthorizeGoogleClientServerOption): Promise<void> {
@@ -39,8 +39,7 @@ export default class AuthorizeGoogleClientServer {
 
     try {
       oAuth2Client.setCredentials(options.userToken);
-      // It doesn't anymore, API can auto refresh.
-      // await oAuth2Client.refreshAccessToken(); // After refresh, set too.
+      await oAuth2Client.refreshAccessToken(); // After refresh, set too.
       // TODO: use this oAuth2Client to update token, need retrieve tokenInfo before update token file
       // return oAuth2Client;
     } catch (err) {
