@@ -45,6 +45,11 @@ export function extractPayloadFromJWT<T>(jWT: string): T {
   return <T>JSON.parse(decodedJWTSplit);
 }
 
+/**
+ * @param enm
+ * @param value
+ * @author Eric Ambiel
+ */
 export function stringToEnum<T>(
   enm: { [s: string]: T },
   value: string,
@@ -52,4 +57,20 @@ export function stringToEnum<T>(
   if ((Object.values(enm) as unknown as string[]).includes(value))
     return value as unknown as T;
   return undefined;
+}
+
+/**
+ * Group array by same predicate
+ * @param array Array to be used for grouping
+ * @param predicate Predicate define de condition to grouping
+ * @author https://stackoverflow.com/questions/14446511/most-efficient-method-to-groupby-on-an-array-of-objects
+ */
+export function groupByPredicate<T>(
+  array: T[],
+  predicate: (value: T, idx: number, arr: T[]) => string,
+) {
+  return array.reduce((acc, value, idx, arr) => {
+    (acc[predicate(value, idx, arr)] ||= []).push(value);
+    return acc;
+  }, {} as { [key: string]: T[] });
 }

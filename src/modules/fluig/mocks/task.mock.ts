@@ -8,7 +8,7 @@ const taskMock: TaskDTO[] = [
     realizadoOperacaoTarefa: '20',
     realizadoOperacaoTarefaNome: 'HORAS TRABALHADAS',
     realizadoProjeto: 'BFF PRONTA FINA LL5874502',
-    realizadoObservacao: 'Validação / Construção de telas do FDS',
+    realizadoObservacao: 'Validation / Construction of FDS screens',
     realizadoData: '03/08/2022',
     realizadoInicio: '08:03',
     realizadoFim: '11:50',
@@ -24,7 +24,7 @@ const taskMock: TaskDTO[] = [
     realizadoOperacaoTarefa: '20',
     realizadoOperacaoTarefaNome: 'HORAS TRABALHADAS',
     realizadoProjeto: 'BFF PRONTA FINA LL5874502',
-    realizadoObservacao: 'Validação / Construção de telas do FDS',
+    realizadoObservacao: 'Validation / Construction of FDS screens',
     realizadoData: '03/08/2022',
     realizadoInicio: '12:38',
     realizadoFim: '17:47',
@@ -34,6 +34,23 @@ const taskMock: TaskDTO[] = [
     realizadoAprovado: 'false',
   },
 ];
+
+// const taskTestSchema = {
+//   realizadoId: expect.any(String),
+//   realizadoNumeroOMOP: expect.any(String),
+//   realizadoCodOMOP: expect.any(String),
+//   realizadoOperacaoTarefa: '20',
+//   realizadoOperacaoTarefaNome: 'HORAS TRABALHADAS',
+//   realizadoProjeto: expect.any(String),
+//   realizadoObservacao: expect.any(String),
+//   realizadoData: expect.any(String),
+//   realizadoInicio: expect.any(String),
+//   realizadoFim: expect.any(String),
+//   realizadoHoras: expect.any(String),
+//   txtAprovacao: '',
+//   aprovadoAprovacaoCheckbox: 'on',
+//   realizadoAprovado: 'false',
+// };
 
 // eslint-disable-next-line import/prefer-default-export
 export { taskMock };

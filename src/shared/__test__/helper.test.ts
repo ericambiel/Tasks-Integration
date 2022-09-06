@@ -12,7 +12,7 @@ import { plainToInstance } from 'class-transformer';
 import RegisterUserService from '@modules/fluig/services/RegisterUserService';
 import GetUserInformation from '@modules/fluig/services/GetUserInformation';
 
-function treatAxios(axios: Axios) {
+function treatReqResAxiosTester(axios: Axios) {
   axios.interceptors.request.use(req => {
     const headers = {
       // @ts-ignore
@@ -52,7 +52,7 @@ function treatAxios(axios: Axios) {
   });
 }
 
-export function registerAxiosCleanInstanceFluigTest() {
+export function registerAxiosCleanInstanceFluigTester() {
   return container.resolve(AxiosFacade).axiosFactor({
     baseURL: process.env.FLUIG_BASEURL ?? '',
     Origin: process.env.FLUIG_ORIGIN ?? '',
@@ -60,9 +60,9 @@ export function registerAxiosCleanInstanceFluigTest() {
   });
 }
 
-export async function authorizeUserAxiosFluig() {
+export async function authorizeUserAxiosFluigTester() {
   // Create clean instance Axios
-  const cleanAxios = registerAxiosCleanInstanceFluigTest();
+  const cleanAxios = registerAxiosCleanInstanceFluigTester();
 
   // Register instance to be used in FluigAPIHelper
   container.registerInstance(Axios, cleanAxios);
@@ -104,7 +104,7 @@ export async function authorizeUserAxiosFluig() {
     .resolve(AxiosFacade)
     .container.resolve<Axios>(registeredUsers[0].userUUID);
 
-  treatAxios(axiosAuthorizedClient);
+  treatReqResAxiosTester(axiosAuthorizedClient);
 
   return axiosAuthorizedClient;
 }

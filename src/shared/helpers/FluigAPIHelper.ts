@@ -136,11 +136,14 @@ export default class FluigAPIHelper {
     );
   }
 
-  getManagerOMOP(oMOP: string, searchFor: NameFnEnum.OP | NameFnEnum.OM) {
+  getManagerOMOP(
+    oMOP: string,
+    searchFor: NameFnEnum.OP | NameFnEnum.OM,
+  ): Promise<IManagerRes> {
     return this.getDataSet<IManagerRes>(oMOP, searchFor).then(res => res.data);
   }
 
-  getTechnician(technicianCode: string) {
+  getTechnician(technicianCode: string): Promise<ITechnicianRes> {
     return this.getDataSet<ITechnicianRes>(technicianCode, NameFnEnum.TEC).then(
       res => res.data,
     );

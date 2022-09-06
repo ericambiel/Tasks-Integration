@@ -19,6 +19,7 @@ export type TaskDTO = {
    * '1000204'
    */
   realizadoCodOMOP: string;
+  // TODO: make enum type to match "realizadoProjeto" to "realizadoOperacaoTarefaNome"
   /**
    * Project description referring to OP/OM. Get from 'Dataset' - 'Find OM by ID'.
    * @example

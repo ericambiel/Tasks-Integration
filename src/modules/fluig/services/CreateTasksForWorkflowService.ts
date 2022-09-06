@@ -2,11 +2,15 @@ import { inject, injectable } from 'tsyringe';
 import { TaskFormDataDTO } from '@modules/fluig/dtos/TaskFormDataDTO';
 import { TaskDTO } from '@modules/fluig/dtos/TaskDTO';
 import { IFluigUserModel } from '@modules/fluig/infra/local/models/FluigUserModel';
-import FluigAPIHelper, { NameFnEnum } from '@shared/helpers/FluigAPIHelper';
-import { FormPropertyDTO } from '@modules/fluig/dtos/FormPropertyDTO';
+import FluigAPIHelper, {
+  ITechnicianRes,
+  NameFnEnum,
+} from '@shared/helpers/FluigAPIHelper';
+import { anyObjToFormProperties } from '@modules/fluig/helpers/formTaskHelper';
+import { groupByPredicate } from '@shared/helpers/smallHelper';
 
 @injectable()
-export default class GetMinimumRequiredToWorkflowOMService {
+export default class CreateTasksForWorkflowService {
   constructor(
     @inject(FluigAPIHelper)
     private fluigAPIHelper: FluigAPIHelper,
@@ -15,17 +19,59 @@ export default class GetMinimumRequiredToWorkflowOMService {
   async execute(
     user: IFluigUserModel,
     technicianCode: string,
-    oM: string,
     tasks: TaskDTO[],
     descriptionWorkFlow: string,
   ) {
-    const manager = await this.fluigAPIHelper.getManagerOMOP(oM, NameFnEnum.OM);
+    // Get information about technician (name)
     const technician = await this.fluigAPIHelper.getTechnician(technicianCode);
 
-    return <TaskFormDataDTO>[
+    // Get and match manager/task.
+    const managers = await Promise.all(
+      tasks.map(async task =>
+        this.fluigAPIHelper.getManagerOMOP(
+          task.realizadoCodOMOP ?? task.realizadoNumeroOMOP,
+          NameFnEnum.OM,
+        ),
+      ),
+    );
+
+    // Group tasks by manager name
+    const groupTasksManager = groupByPredicate(tasks, value => {
+      return (
+        managers.find(
+          manager =>
+            manager.content.values[0].codigoProjeto ===
+            value.realizadoNumeroOMOP,
+        )?.content.values[0].nomeGestor ?? 'managerNotFound'
+      );
+    });
+
+    // Return a list of Task Forms to each manager name found.
+    return Object.keys(groupTasksManager).map(managerName =>
+      this.taskFormDataCreator({
+        managerName,
+        user,
+        technicianCode,
+        technician,
+        tasks: groupTasksManager[managerName],
+        descriptionWorkFlow,
+      }),
+    );
+  }
+
+  // TODO: Make a model for this
+  private taskFormDataCreator(options: {
+    managerName: string;
+    user: IFluigUserModel;
+    technicianCode: string;
+    technician: ITechnicianRes;
+    tasks: TaskDTO[];
+    descriptionWorkFlow: string;
+  }): TaskFormDataDTO {
+    return [
       {
         name: 'gerente',
-        value: manager.content.values[0].nomeGestor,
+        value: options.managerName,
       },
       {
         name: 'nomeGerente',
@@ -41,7 +87,7 @@ export default class GetMinimumRequiredToWorkflowOMService {
       },
       {
         name: 'apontamentosRealizadosJson',
-        value: JSON.stringify(tasks),
+        value: JSON.stringify(options.tasks),
       },
       {
         name: 'apontamentosAprovados',
@@ -53,7 +99,7 @@ export default class GetMinimumRequiredToWorkflowOMService {
       },
       {
         name: 'solicitante',
-        value: user.userInfo.userName,
+        value: options.user.userInfo.userName,
       },
       {
         name: 'txtMatriculaSolicitante',
@@ -66,14 +112,14 @@ export default class GetMinimumRequiredToWorkflowOMService {
       {
         name: 'dataSolicitacao',
         value: new Intl.DateTimeFormat('pt-BR', {
-          timeZone: user.userTimeZone,
+          timeZone: options.user.userTimeZone,
           dateStyle: 'short',
         }).format(new Date()),
       },
       {
         name: 'txtHoraSolicitacao',
         value: new Intl.DateTimeFormat('pt-BR', {
-          timeZone: user.userTimeZone,
+          timeZone: options.user.userTimeZone,
           timeStyle: 'short',
         }).format(new Date()),
       },
@@ -83,15 +129,15 @@ export default class GetMinimumRequiredToWorkflowOMService {
       },
       {
         name: 'codTecnico',
-        value: technicianCode,
+        value: options.technicianCode,
       },
       {
         name: 'nomeTecnico',
-        value: technician.content.values[0].nomeTecnico,
+        value: options.technician.content.values[0].nomeTecnico,
       },
       {
         name: 'atividades',
-        value: descriptionWorkFlow,
+        value: options.descriptionWorkFlow,
       },
       {
         name: 'observacoes',
@@ -197,29 +243,7 @@ export default class GetMinimumRequiredToWorkflowOMService {
         name: 'aprovadoAprovacaoCheckbox',
         value: '',
       },
-      ...this.getFormProperties(tasks),
+      ...anyObjToFormProperties(options.tasks),
     ];
-  }
-
-  getFormProperties(
-    objs: Record<string, string> | Record<string, string>[],
-  ): FormPropertyDTO[] {
-    const newNameKey = (key: string, idx: number) => `${key}___${idx + 1}`;
-
-    if (Array.isArray(objs))
-      return objs
-        .map((obj, idx, array) =>
-          Object.keys(obj).map(key => ({
-            name: newNameKey(key, idx),
-            value: array[idx][<keyof typeof obj>key],
-          })),
-        )
-        .flat();
-
-    return Object.keys(objs).map(key => ({
-      name: newNameKey(key, 0),
-      // https://bobbyhadz.com/blog/typescript-no-index-signature-with-parameter-of-type-string#:~:text=The%20error%20%22No%20index%20signature,keys%20using%20keyof%20typeof%20obj%20.
-      value: objs[<keyof typeof objs>key],
-    }));
   }
 }

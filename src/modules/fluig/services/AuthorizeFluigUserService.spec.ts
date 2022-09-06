@@ -5,7 +5,8 @@ import AuthorizeFluigUserService from '@modules/fluig/services/AuthorizeFluigUse
 import { IFluigUserRepository } from '@modules/fluig/infra/local/repositories/IFluigUserRepository';
 import FluigUserRepository from '@modules/fluig/infra/local/repositories/FluigUserRepository';
 import { IFluigUserModel } from '@modules/fluig/infra/local/models/FluigUserModel';
-import { registerAxiosCleanInstanceFluigTest } from '@shared/__test__/helper.test';
+import { registerAxiosCleanInstanceFluigTester } from '@shared/__test__/helper.test';
+import FluigUserInfoModel from '@modules/fluig/infra/local/models/FluigUserInfoModel';
 
 describe('Unit test - AuthorizeUserService', () => {
   let service: AuthorizeFluigUserService;
@@ -22,10 +23,11 @@ describe('Unit test - AuthorizeUserService', () => {
     tenantUUID: expect.any(String),
     lastUpdateDate: expect.any(Number),
     userTimeZone: expect.any(String),
+    userInfo: expect.any(FluigUserInfoModel),
   };
 
   beforeAll(() => {
-    registerAxiosCleanInstanceFluigTest();
+    registerAxiosCleanInstanceFluigTester();
 
     repository = container.resolve<IFluigUserRepository>(FluigUserRepository);
 
