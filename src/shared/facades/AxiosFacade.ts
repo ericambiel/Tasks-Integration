@@ -1,6 +1,6 @@
 import { singleton } from 'tsyringe';
 import axios, { Axios, AxiosInstance, AxiosRequestConfig } from 'axios';
-import ContainerManagerHelper from '@shared/helpers/ContainerManagerHelper';
+import ContainerManagerHelper from '@helpers/ContainerManagerHelper';
 
 type OptionAxiosInstance = {
   baseURL: string;

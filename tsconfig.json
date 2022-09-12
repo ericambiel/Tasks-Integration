@@ -29,6 +29,16 @@
       ],
       "@config/*": [
         "config/*"
+      ],
+      "@helpers/*": [
+        "vendor/helpers/*",
+        "modules/shared/helpers/*"
+      ],
+      "@libs/*": [
+        "vendor/libs/*"
+      ],
+      "@configs/*": [
+        "vendor/config/index.ts"
       ]
     },
     "typeRoots": [

@@ -5,7 +5,7 @@ import FilesHandlerHelper from '@shared/helpers/FilesHandlerHelper';
 import { GenerateAuthUrlOpts } from 'google-auth-library/build/src/auth/oauth2client';
 import { arrayArrayToObjArrayHead } from '@shared/helpers/smallHelper';
 import { UserTokenInfo } from '@modules/googleSheets/infra/local/repositories/IGoogleUserRepository';
-import ContainerManagerHelper from '@shared/helpers/ContainerManagerHelper';
+import ContainerManagerHelper from '@helpers/ContainerManagerHelper';
 
 export type GoogleClientCredential = {
   web: {

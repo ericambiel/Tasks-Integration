@@ -8,8 +8,6 @@ import SpreadsheetTaskModel from '@modules/integration/infra/local/models/Spread
 import { authorizeUserAxiosFluigTester } from '@shared/__test__/helper.test';
 import { WorkflowTaskDTO } from '@modules/fluig/dtos/WorkflowTaskDTO';
 
-authorizeUserAxiosFluigTester().then();
-
 export default class IntegrationController {
   constructor(
     @inject(GetSpreadsheetService)
@@ -29,6 +27,7 @@ export default class IntegrationController {
     });
 
     // await this.authorizeUserFluigService.execute('asas', 'asasas');
+    await authorizeUserAxiosFluigTester();
 
     const spreadsheetTasks = await this.getSpreadsheetService.execute({
       spreadsheetId: '123123',
