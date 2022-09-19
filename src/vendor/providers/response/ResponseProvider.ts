@@ -1,56 +1,54 @@
 import { singleton } from 'tsyringe';
 import { IError } from '../../erros/BaseError';
 
+export type ResponseProviderProps = {
+  success: boolean;
+  data: Array<Record<string, unknown>> | Record<string, unknown>;
+  errors: IError[];
+  metadata: Record<string, unknown>;
+};
+
 @singleton()
 export default class ResponseProvider {
-  public success: boolean;
+  constructor(private props: ResponseProviderProps) {}
 
-  public data: Array<Record<string, unknown>> | Record<string, unknown>;
+  // set(options: IResponseProvider): void {
+  //   this.setSuccess(options.success)
+  //     .setData(options.data)
+  //     .setErrors(options.errors)
+  //     .setMetadata(options.metadata);
+  // }
 
-  public errors: IError[];
-
-  public metadata: Record<string, unknown>;
-
-  set(
-    options: Pick<ResponseProvider, 'success' | 'data' | 'errors' | 'metadata'>,
-  ): void {
-    this.setSuccess(options.success)
-      .setData(options.data)
-      .setErrors(options.errors)
-      .setMetadata(options.metadata);
+  get metadata() {
+    return this.props.metadata;
   }
 
-  setSuccess(success: boolean): this {
-    this.success = success;
+  setSuccess(success: typeof this.props.success) {
+    this.props.success = success;
     return this;
   }
 
-  setData(
-    data: Array<Record<string, unknown>> | Record<string, unknown>,
-  ): this {
-    this.data = data;
+  setData(data: typeof this.props.data) {
+    this.props.data = data;
     return this;
   }
 
-  setErrors(errors: Record<string, unknown>[]): this {
-    this.errors = errors;
+  setErrors(errors: typeof this.props.errors) {
+    this.props.errors = errors;
     return this;
   }
 
-  setMetadata(metadata: Record<string, unknown>): this {
-    this.metadata = metadata;
+  setMetadata(metadata: typeof this.props.metadata) {
+    this.props.metadata = metadata;
     return this;
   }
 
-  consume(): Pick<
-    ResponseProvider,
-    'success' | 'data' | 'errors' | 'metadata'
-  > {
+  getProps(): ResponseProviderProps {
     return {
-      success: this.success,
-      data: this.data,
-      errors: this.errors,
-      metadata: this.metadata,
+      success: this.props.success,
+      data: this.props.data,
+      errors: this.props.errors,
+      metadata: this.props.metadata,
     };
   }
 }

@@ -3,7 +3,7 @@ import { CelebrateError, isCelebrateError } from 'celebrate';
 import { container } from 'tsyringe';
 import { api } from '@configs/*';
 import ConsoleLog from '@libs/ConsoleLog';
-import parseCelebrateError from '@helpers/parseCelebrateError';
+import parseCelebrateErrorHelper from '@helpers/parseCelebrateErrorHelper';
 import AppError from '../../erros/AppError';
 import ResponseProvider from '../../providers/response/ResponseProvider';
 
@@ -34,7 +34,7 @@ export default function error(
     appResponse.setSuccess(false).setErrors(err.errors);
   } else if (isCelebrateError(err) || err instanceof CelebrateError) {
     status = 400;
-    appResponse.setSuccess(false).setErrors(parseCelebrateError(err));
+    appResponse.setSuccess(false).setErrors(parseCelebrateErrorHelper(err));
     // } else if (err instanceof AuthError) {
     //   status = 401;
     //   appResponse.setSuccess(false).setErrors(err.errors);
@@ -45,7 +45,7 @@ export default function error(
     ConsoleLog.print(err.toString(), 'error', 'ERROR', apiConfig.SILENT);
   }
 
-  const result = appResponse.consume();
+  const result = appResponse.getProps();
 
   appResponseContainer.clearInstances();
 

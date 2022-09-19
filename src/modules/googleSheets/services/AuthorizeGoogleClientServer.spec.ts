@@ -23,7 +23,7 @@ describe('Unit test - AuthorizeGoogleUserService.ts', () => {
   let repositoryUser: IGoogleUserRepository;
   let serviceAuth: AuthorizeGoogleClientServer;
 
-  beforeAll(async () => {
+  beforeAll(() => {
     container.register<string>('clientCredentialFilePath', {
       useValue: 'src/misc/clients',
     });
@@ -31,12 +31,11 @@ describe('Unit test - AuthorizeGoogleUserService.ts', () => {
       useValue: 'src/misc/tokens',
     });
 
-    repositoryClient = await container.resolve<IGoogleClientRepository>(
+    repositoryClient = container.resolve<IGoogleClientRepository>(
       GoogleClientRepository,
     );
-    repositoryUser = await container.resolve<IGoogleUserRepository>(
-      GoogleUserRepository,
-    );
+    repositoryUser =
+      container.resolve<IGoogleUserRepository>(GoogleUserRepository);
 
     serviceAuth = container.resolve(AuthorizeGoogleClientServer);
   });

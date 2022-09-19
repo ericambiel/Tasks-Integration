@@ -12,7 +12,7 @@ const success = mung.json(function transform(
   if (Array.isArray(body) && !('total' in appResponse.metadata)) {
     appResponse.setMetadata({ ...appResponse.metadata, total: body.length });
   }
-  return appResponse.setData(body || {}).consume();
+  return appResponse.setData(body || {}).getProps();
 });
 
 export default success;

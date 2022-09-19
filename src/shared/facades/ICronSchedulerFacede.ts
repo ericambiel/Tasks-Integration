@@ -1,5 +1,5 @@
 import { CronJob } from 'cron';
-import { Moment } from 'moment';
+import { DateTime } from 'luxon';
 
 export interface IDefaults {
   /**
@@ -52,6 +52,9 @@ export interface IScheduleOptions extends IDefaults {
 }
 
 export interface IScheduleOptions2 extends IDefaults {
+  /**
+   * @description Cron time format * * * * *
+   */
   cronTime?: string;
 }
 
@@ -62,11 +65,13 @@ export interface IScheduleJob extends IDefaults {
 export interface IScheduledJobDetail extends IDefaults {
   isRunning?: boolean;
   lastExecutionDate: Date;
-  nextExecutionsDate: Moment;
+  nextExecutionsDate: DateTime;
 }
 
 export interface ICronSchedulerFacade {
   jobMaker(jobFunc: () => unknown, options?: IScheduleOptions): void;
+
   getScheduledJobsDetails(options?: IDefaults[]): IScheduledJobDetail[];
+
   stopScheduledJobs(options: IDefaults[]): IScheduledJobDetail[];
 }

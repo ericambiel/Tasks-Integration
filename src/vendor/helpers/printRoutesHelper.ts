@@ -45,10 +45,7 @@ function getStacks(expressRouter: Router): any[] {
     .flat();
 }
 
-export default async function printRoutes(
-  prefix: string,
-  expressRouter: Router,
-): Promise<void> {
+function printRoutesHelper(prefix: string, expressRouter: Router): void {
   expressRouter.get(`${prefix}/`);
   const stacks = getStacks(expressRouter);
 
@@ -86,3 +83,6 @@ export default async function printRoutes(
     console.groupEnd();
   }
 }
+
+// eslint-disable-next-line import/prefer-default-export
+export { printRoutesHelper };

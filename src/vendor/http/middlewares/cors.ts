@@ -6,10 +6,7 @@ import { api as _api, cors as _cors } from '../../config';
 
 // const debug = new ConsoleLog('debug', 'cors');
 
-const corsOptionsDelegate = async (
-  req: Request,
-  callback: any,
-): Promise<void> => {
+const corsOptionsDelegate = (req: Request, callback: any): void => {
   const corsConfig = _cors();
   const apiConfig = _api();
 
@@ -30,8 +27,7 @@ const corsOptionsDelegate = async (
         apiConfig.SILENT,
       );
       break;
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    case corsConfig.ORIGINS.indexOf(req.header('Origin')!) !== -1:
+    case corsConfig.ORIGINS.indexOf(req.header('Origin') ?? '') !== -1:
       corsOptions = {
         origin: true,
         // methods: 'GET,HEAD,OPTIONS,PUT,PATCH,POST,DELETE',

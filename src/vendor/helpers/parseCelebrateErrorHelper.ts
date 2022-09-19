@@ -1,7 +1,9 @@
 import { CelebrateError } from 'celebrate';
 import { IError } from '../erros/BaseError';
 
-export default function parseCelebrateError(err: CelebrateError): IError[] {
+export default function parseCelebrateErrorHelper(
+  err: CelebrateError,
+): IError[] {
   const errors: IError[] = [];
   err.details.forEach(celebrateDetail => {
     celebrateDetail.details.forEach(detail => {
