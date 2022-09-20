@@ -1,22 +1,24 @@
 import { inject, singleton } from 'tsyringe';
-import GoogleAPIFacade from '@shared/facades/GoogleAPIFacade';
+import GoogleAPIFacade, {
+  MinimumScopesType,
+} from '@shared/facades/GoogleAPIFacade';
 import { Credentials, OAuth2Client } from 'google-auth-library';
 import GoogleClientRepository from '../infra/local/repositories/GoogleClientRepository';
 import { IGoogleClientRepository } from '../infra/local/repositories/IGoogleClientRepository';
 
 type AuthorizeGoogleClientServerOption = {
-  /**
-   * client ID of OAuth2Client
-   */
-  clientId: string;
+  /** Google user credential, acquired from token */
   userToken: Credentials;
+  /** if not given it, will be used the first registered client instance */
+  clientId?: string;
 };
 
 @singleton()
-export default class AuthorizeGoogleClientServer {
-  private readonly SCOPES = [
+export default class AuthorizeUserToClientGoogleServer {
+  private readonly SCOPES: MinimumScopesType = [
     'https://www.googleapis.com/auth/userinfo.profile',
     'https://www.googleapis.com/auth/spreadsheets.readonly',
+    'https://www.googleapis.com/auth/drive.metadata.readonly',
   ];
 
   constructor(
@@ -35,7 +37,14 @@ export default class AuthorizeGoogleClientServer {
    *
    */
   async execute(options: AuthorizeGoogleClientServerOption): Promise<void> {
-    const oAuth2Client = this.repository.findById(options.clientId);
+    let oAuth2Client: OAuth2Client;
+
+    if (options.clientId)
+      oAuth2Client = this.repository.findById(options.clientId);
+    else
+      oAuth2Client = this.repository.findById(
+        this.repository.list()[0].web.client_id,
+      );
 
     try {
       oAuth2Client.setCredentials(options.userToken);

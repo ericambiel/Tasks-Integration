@@ -39,6 +39,9 @@
       ],
       "@configs/*": [
         "vendor/config/index.ts"
+      ],
+      "@providers/*": [
+        "vendor/providers/*"
       ]
     },
     "typeRoots": [

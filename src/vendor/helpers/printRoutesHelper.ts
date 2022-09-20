@@ -14,7 +14,7 @@ function combineStacks(
   stack: any,
   expressRouter: Router,
   prefix: string,
-): any[] {
+): unknown[] {
   if (stack.handle.stack) {
     const routerPath = `${prefix}${getPathFromRegex(stack.regexp)}`.replace(
       '//',

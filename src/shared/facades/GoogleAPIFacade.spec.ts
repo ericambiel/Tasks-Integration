@@ -1,20 +1,21 @@
 import 'reflect-metadata';
 import { container } from 'tsyringe';
-import GoogleAPIFacade from '@shared/facades/GoogleAPIFacade';
-import { OAuth2Client } from 'google-auth-library';
+import GoogleAPIFacade, {
+  GDriveMINEEnum,
+} from '@shared/facades/GoogleAPIFacade';
+import { Credentials, OAuth2Client } from 'google-auth-library';
 
 import { UserTokenInfo } from '@modules/googleSheets/infra/local/repositories/IGoogleUserRepository';
+import GoogleUserInformationModel from '@modules/googleSheets/infra/local/models/GoogleUserInformationModel';
 import CLIENT_SECRET from '../../misc/clients/client_secret_331108598412-fmcfkud7cm6hv4qvjc21g37ormjob0qu.apps.googleusercontent.com.json';
+import userToken from '../../misc/tokens/108866897033893388302.token.json';
 
 describe('Unit Test - GoogleAPIFacade', () => {
   let googleServiceFacade: GoogleAPIFacade;
   let oAuth2Client: OAuth2Client;
+  let newTokenInfoUser: UserTokenInfo;
 
-  /** Get this code by running AuthorizeGoogleUserService.spec */
-  const validationTokenCode =
-    '4/0AdQt8qgdTphw7k0Hfok3TpJjXDsSctG2m2kxGEWtzCurhWR1_PYUz1qs2rvHbLOSlr5Ptw';
-
-  // TODO: Create schema and use Joy to validade exactly kinds values(Useful to be used on celebrate too)
+  // TODO: Create schema and use Joy to validade exactly type values(Useful to be used on celebrate too)
   const userTokenInfoSchema: UserTokenInfo = {
     refresh_token: expect.any(String),
     scope: expect.any(String),
@@ -34,22 +35,43 @@ describe('Unit Test - GoogleAPIFacade', () => {
     oAuth2Client = googleServiceFacade.oAuth2ClientFactor(CLIENT_SECRET);
   });
 
-  it('Should be possible get new token to Google User', async () => {
-    const newToken = await googleServiceFacade.getNewToken(
+  it('Should be possible get new token using getTokenInformation', async () => {
+    /** Get this code by running AuthorizeGoogleUserService.spec */
+    const validationTokenCode =
+      '4/0ARtbsJo_ORBNlNdkVpjoLTpsfo3i2YiKN3QYnzZdpPzwVaMnMny065UwiLLxLLSu6USmHg';
+
+    const newToken: Credentials = await googleServiceFacade.getNewToken(
       oAuth2Client,
       validationTokenCode,
     );
 
-    const tokenInfo = await googleServiceFacade.getTokenInformation(
-      oAuth2Client,
-      newToken.access_token ?? '',
-    );
+    const tokenInfo: GoogleUserInformationModel =
+      await googleServiceFacade.getTokenInformation(
+        oAuth2Client,
+        newToken.access_token ?? '',
+      );
 
-    const newTokenInfoUser: UserTokenInfo = {
+    newTokenInfoUser = {
       ...newToken,
       user_information: tokenInfo,
     };
 
     expect(newTokenInfoUser).toMatchObject<UserTokenInfo>(userTokenInfoSchema);
+  });
+
+  it('Should be possible list specifics files by criteria', async () => {
+    oAuth2Client.setCredentials({ refresh_token: userToken.refresh_token });
+
+    const files = await googleServiceFacade.findFilesDrive(oAuth2Client, {
+      mimeType: GDriveMINEEnum.spreadsheet,
+      name: 'Apontamento Horas',
+    });
+
+    expect(files).toContainEqual(
+      expect.objectContaining({
+        id: expect.any(String),
+        name: expect.any(String),
+      }),
+    );
   });
 });

@@ -7,6 +7,7 @@ import parseCelebrateErrorHelper from '@helpers/parseCelebrateErrorHelper';
 import AppError from '../../erros/AppError';
 import ResponseProvider from '../../providers/response/ResponseProvider';
 
+// TODO: apply instance manager ResponseContainer
 const appResponseContainer = container.createChildContainer();
 
 /**
@@ -45,7 +46,8 @@ export default function error(
     ConsoleLog.print(err.toString(), 'error', 'ERROR', apiConfig.SILENT);
   }
 
-  const result = appResponse.getProps();
+  // const result = appResponse.getProps();
+  const result = { ...appResponse.getProps() };
 
   appResponseContainer.clearInstances();
 

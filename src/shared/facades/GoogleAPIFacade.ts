@@ -7,6 +7,7 @@ import { arrayArrayToObjArrayHead } from '@shared/helpers/smallHelper';
 import { UserTokenInfo } from '@modules/googleSheets/infra/local/repositories/IGoogleUserRepository';
 import ContainerManagerHelper from '@helpers/ContainerManagerHelper';
 
+/** @author Eric Ambiel */
 export type GoogleClientCredential = {
   web: {
     client_id: string;
@@ -20,7 +21,44 @@ export type GoogleClientCredential = {
   };
 };
 
-export type GetSpreadSheetValuesOption = {
+/** @author Eric Ambiel */
+// eslint-disable-next-line no-shadow
+export enum GDriveMINEEnum {
+  audio = 'application/vnd.google-apps.audio',
+  /** Google Docs */
+  document = 'application/vnd.google-apps.document',
+  /** 3rd party shortcut */
+  driveSdk = 'application/vnd.google-apps.drive-sdk',
+  drawing = 'application/vnd.google-apps.drawing', // Google Drawing
+  file = 'application/vnd.google-apps.file', // Google Drive file
+  folder = 'application/vnd.google-apps.folder', // Google Drive folder
+  form = 'application/vnd.google-apps.form', // Google Forms
+  fusiontable = 'application/vnd.google-apps.fusiontable', // Google Fusion Tables
+  jam = 'application/vnd.google-apps.jam', // Google Jamboard
+  map = 'application/vnd.google-apps.map', // Google My Maps
+  photo = 'application/vnd.google-apps.photo',
+  presentation = 'application/vnd.google-apps.presentation', // Google Slides
+  script = 'application/vnd.google-apps.script', // Google Apps Scripts
+  shortcut = 'application/vnd.google-apps.shortcut', // Shortcut
+  site = 'application/vnd.google-apps.site', // Google Sites
+  /** Google Sheets */
+  spreadsheet = 'application/vnd.google-apps.spreadsheet',
+  video = 'application/vnd.google-apps.video',
+  unknown = 'application/vnd.google-apps.unknown',
+}
+
+/** @author Eric Ambiel */
+type FindSpreadsheetOption = {
+  /** MIME type file */
+  mimeType: GDriveMINEEnum | string;
+  /** Name of file to find in */
+  name?: string;
+  /** Get all metadata values from files */
+  allMetadata?: true;
+};
+
+/** @author Eric Ambiel */
+export type GetSpreadsheetValuesOption = {
   /**
    *  Spread Sheet ID. You can get it from you google sheet URL
    *  @example 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms
@@ -38,18 +76,22 @@ export type GetSpreadSheetValuesOption = {
   arrayArray?: true;
 };
 
-export type GetAuthUrlOption = {
+/** @author Eric Ambiel */
+export type MinimumScopesType = [
+  'https://www.googleapis.com/auth/userinfo.profile', // Get same information from profile, like user_id
+  'https://www.googleapis.com/auth/spreadsheets.readonly', // Needed to access spreadsheet
+  'https://www.googleapis.com/auth/drive.metadata.readonly', // Get Drive file name, used to find Spreadsheet
+];
+
+/** @author Eric Ambiel */
+type GetAuthUrlOption = {
   /** @type {GenerateAuthUrlOpts.scope} */
-  scopes:
-    | GenerateAuthUrlOpts['scope']
-    | [
-        'https://www.googleapis.com/auth/spreadsheets.readonly', // Needed to access spreadsheet
-        'https://www.googleapis.com/auth/userinfo.profile', // Get same information from profile, like user_id
-      ];
+  scopes: GenerateAuthUrlOpts['scope'] | MinimumScopesType;
   /** Prompt permission even if had it already, useful to get "refresh_token" again */
   askPermission?: true;
 };
 
+/** @author Eric Ambiel */
 @singleton()
 export default class GoogleAPIFacade extends ContainerManagerHelper {
   constructor(
@@ -139,13 +181,13 @@ export default class GoogleAPIFacade extends ContainerManagerHelper {
    * @param oAuth2Client The authenticated Google OAuth client.
    * @param options
    */
-  getSpreadSheetValues(
+  getSpreadSheetValues<T>(
     oAuth2Client: OAuth2Client,
-    options: GetSpreadSheetValuesOption,
+    options: GetSpreadsheetValuesOption,
   ) {
-    const sheets = google.sheets({ version: 'v4', auth: <never>oAuth2Client }); // TODO: Type OAuth2Client doesn't work here
+    const sheets = google.sheets({ version: 'v4', auth: oAuth2Client });
 
-    return new Promise<[][] | Record<string, string>[]>((resolve, reject) => {
+    return new Promise<string[][] | T[]>((resolve, reject) => {
       sheets.spreadsheets.values.get(
         {
           // majorDimension: 'ROWS', // default
@@ -153,7 +195,7 @@ export default class GoogleAPIFacade extends ContainerManagerHelper {
           range: options.range,
         },
         (err, res) => {
-          const rows = res?.data.values;
+          const rows = <string[][]>res?.data.values;
 
           if (err) reject(new Error(`The API returned an error: ${err}`));
 
@@ -161,7 +203,9 @@ export default class GoogleAPIFacade extends ContainerManagerHelper {
             resolve(
               options.arrayArray
                 ? rows
-                : arrayArrayToObjArrayHead(rows, { undefinedTo: null }),
+                : arrayArrayToObjArrayHead<T>(rows, {
+                    undefinedTo: null,
+                  }),
             );
 
           reject(new Error('No data found.'));
@@ -169,4 +213,42 @@ export default class GoogleAPIFacade extends ContainerManagerHelper {
       );
     });
   }
+
+  /**
+   * Search file in drive location
+   * @return{obj} data file
+   */
+  async findFilesDrive(
+    oAuth2Client: OAuth2Client,
+    options?: FindSpreadsheetOption,
+  ) {
+    const service = google.drive({ version: 'v3', auth: oAuth2Client });
+    let filter;
+    let fields;
+
+    if (options) {
+      const { mimeType, name } = options;
+
+      filter = `${mimeType ? `mimeType:'${mimeType}'` : ''}${
+        name ? ` AND name:'${name}'` : ''
+      }`;
+
+      fields = options.allMetadata ? '*' : 'nextPageToken, files(id, name)';
+    }
+
+    const res = await service.files.list({
+      q: filter,
+      fields,
+      spaces: 'drive',
+    });
+
+    if (!res.data.files)
+      throw new Error('There is no files with search options');
+
+    // res.data.files.forEach(file => console.log('Found file:', file));
+
+    return res.data.files;
+  }
+
+  // TODO: Use google.drive.watch to subscribe sheet, waiting for changes
 }

@@ -4,7 +4,7 @@ import { GoogleClientCredential } from '@shared/facades/GoogleAPIFacade';
 
 import { Credentials } from 'google-auth-library';
 import { sleep } from '@shared/helpers/smallHelper';
-import AuthorizeGoogleClientServer from './AuthorizeGoogleClientServer';
+import AuthorizeUserToClientGoogleServer from './AuthorizeUserToClientGoogleServer';
 import { IGoogleClientRepository } from '../infra/local/repositories/IGoogleClientRepository';
 import GoogleClientRepository from '../infra/local/repositories/GoogleClientRepository';
 import { IGoogleUserRepository } from '../infra/local/repositories/IGoogleUserRepository';
@@ -21,7 +21,7 @@ describe('Unit test - AuthorizeGoogleUserService.ts', () => {
 
   let repositoryClient: IGoogleClientRepository;
   let repositoryUser: IGoogleUserRepository;
-  let serviceAuth: AuthorizeGoogleClientServer;
+  let serviceAuth: AuthorizeUserToClientGoogleServer;
 
   beforeAll(() => {
     container.register<string>('clientCredentialFilePath', {
@@ -37,7 +37,7 @@ describe('Unit test - AuthorizeGoogleUserService.ts', () => {
     repositoryUser =
       container.resolve<IGoogleUserRepository>(GoogleUserRepository);
 
-    serviceAuth = container.resolve(AuthorizeGoogleClientServer);
+    serviceAuth = container.resolve(AuthorizeUserToClientGoogleServer);
   });
 
   beforeEach(async () => {
