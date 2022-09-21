@@ -70,10 +70,10 @@ export type GetSpreadsheetValuesOption = {
    *  'Class Data!A2:E'
    */
   range: 'Class Data!A2:E' | string;
-  /**
-   * Array of Array values, direct from Google without treat to Array of Obj
-   */
-  arrayArray?: true;
+  // /**
+  //  * Array of Array values, direct from Google without treat to Array of Obj
+  //  */
+  // arrayArray?: true;
 };
 
 /** @author Eric Ambiel */
@@ -181,13 +181,13 @@ export default class GoogleAPIFacade extends ContainerManagerHelper {
    * @param oAuth2Client The authenticated Google OAuth client.
    * @param options
    */
-  getSpreadSheetValues<T>(
+  getSpreadSheetArrayArray(
     oAuth2Client: OAuth2Client,
     options: GetSpreadsheetValuesOption,
   ) {
     const sheets = google.sheets({ version: 'v4', auth: oAuth2Client });
 
-    return new Promise<string[][] | T[]>((resolve, reject) => {
+    return new Promise<string[][]>((resolve, reject) => {
       sheets.spreadsheets.values.get(
         {
           // majorDimension: 'ROWS', // default
@@ -201,16 +201,38 @@ export default class GoogleAPIFacade extends ContainerManagerHelper {
 
           if (rows?.length)
             resolve(
-              options.arrayArray
-                ? rows
-                : arrayArrayToObjArrayHead<T>(rows, {
-                    undefinedTo: null,
-                  }),
+              rows,
+              // options.arrayArray
+              //   ? rows
+              //   : arrayArrayToObjArrayHead<T>(rows, {
+              //       undefinedTo: null,
+              //     }),
             );
 
           reject(new Error('No data found.'));
         },
       );
+    });
+  }
+
+  /**
+   * Transform arrayArray spreadsheet
+   * on typed ArrayObject array
+   * @param oAuth2Client
+   * @param options
+   */
+  async getSpreadSheetValuesArrayObj<T>(
+    oAuth2Client: OAuth2Client,
+    options: GetSpreadsheetValuesOption,
+  ) {
+    const spreadsheet = await this.getSpreadSheetArrayArray(
+      oAuth2Client,
+      options,
+    );
+
+    // TODO: Verify with celebrate if given generic type is correct transformed
+    return arrayArrayToObjArrayHead<T>(spreadsheet, {
+      undefinedTo: null,
     });
   }
 

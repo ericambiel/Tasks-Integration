@@ -14,18 +14,19 @@ export const sleep = (mSeconds: number) =>
  * [[name,surname],['Eric','Ambiel'],['Maria','Cristina']] =>
  * [{name:'Eric',surname:'Ambiel'},{name:'Maria',surname:'Cristina'}]
  */
-export function arrayArrayToObjArrayHead(
-  rows: unknown[][],
+export function arrayArrayToObjArrayHead<T>(
+  rows: string[][],
   options?: { undefinedTo: number | string | boolean | null },
-) {
-  const keys = <[]>rows.shift();
-  return rows.map(values =>
-    keys.reduce((preview, current, i) => {
-      const newProperty: Record<string, unknown> = {};
-      newProperty[current] = values[i] ? values[i] : options?.undefinedTo;
-      return { ...preview, ...newProperty };
-    }, {}),
-  );
+): T[] {
+  const keys = rows.shift();
+  if (keys) return <T[]>rows.map(values =>
+      keys.reduce((preview, current, i) => {
+        const newProperty: Record<string, unknown> = {};
+        newProperty[current] = values[i] ?? options?.undefinedTo;
+        return { ...preview, ...newProperty };
+      }, {}),
+    );
+  throw new Error('First array position cannot be undefined');
 }
 
 // const stringifyToSlashedJSON = (

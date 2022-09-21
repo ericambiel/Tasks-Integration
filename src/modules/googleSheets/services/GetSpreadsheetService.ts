@@ -13,16 +13,10 @@ export default class GetSpreadsheetService {
     private oAuth2Client: OAuth2Client,
   ) {}
 
-  // execute({
-  //   spreadsheetId,
-  //   range,
-  // }: GetSpreadsheetValuesOption): Promise<Record<string, string | null>[]>;
-  //
-  // execute(options: GetSpreadsheetValuesOption): Promise<string[][]>;
-
-  execute(
-    options: GetSpreadsheetValuesOption,
-  ): Promise<string[][] | Record<string, string | null>[]> {
-    return this.googleAPI.getSpreadSheetValues(this.oAuth2Client, options);
+  execute(options: GetSpreadsheetValuesOption) {
+    return this.googleAPI.getSpreadSheetValuesArrayObj(
+      this.oAuth2Client,
+      options,
+    );
   }
 }

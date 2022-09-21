@@ -13,6 +13,6 @@ export default class SpreadsheetOMOPModel implements ISpreadsheetOMOPModel {
   @Expose({ name: 'Tipo' })
   projectType: 'OM' | 'OP';
 
-  @Expose({ name: 'Tipo' })
+  @Expose({ name: 'Cliente' })
   customerName: string;
 }
