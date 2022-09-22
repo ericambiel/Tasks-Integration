@@ -13,6 +13,9 @@ type AuthorizeGoogleClientServerOption = {
   clientId?: string;
 };
 
+/**
+ * @author Eric Ambiel
+ */
 @singleton()
 export default class AuthorizeUserToClientGoogleServer {
   private readonly SCOPES: MinimumScopesType = [
@@ -29,7 +32,9 @@ export default class AuthorizeUserToClientGoogleServer {
   ) {}
 
   /**
-   * Try to authorize client server with user token.
+   * Authorize Google Users in Google client service.
+   * P.S: If "clientId" not given then the first
+   * Google client service will be used.
    * @param options
    * @return {Promise<string | OAuth2Client>} Instance of OAuth2Client or URL to authorize client server to access user.
    * @author Eric Ambiel
@@ -49,8 +54,6 @@ export default class AuthorizeUserToClientGoogleServer {
     try {
       oAuth2Client.setCredentials(options.userToken);
       await oAuth2Client.refreshAccessToken(); // After refresh, set too.
-      // TODO: use this oAuth2Client to update token, need retrieve tokenInfo before update token file
-      // return oAuth2Client;
     } catch (err) {
       console.error(
         `Re-authentication is needed, same thing wrong with Client credentials: ${err}`,

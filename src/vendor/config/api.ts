@@ -11,7 +11,7 @@ export default (): {
   return {
     PORT: Number(process.env.API_REST_PORT ?? 3000),
     BASE_URL: process.env.API_BASE_URL ?? '/api/v1',
-    SILENT: process.env.API_SILENT_MODE === 'enabled',
+    SILENT: process.env.API_SILENT_MODE === 'true',
     DEBUG_LEVEL: process.env.API_DEBUG_LEVEL?.toUpperCase()?.split(',') ?? [],
   };
 };

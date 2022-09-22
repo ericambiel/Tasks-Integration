@@ -8,7 +8,7 @@ enum FluigStatusEnum {
   NOK = 'pointedTaskNotOK',
 }
 
-export interface ISpreadsheetTask {
+export interface ISheetTask {
   solicitationId: number;
   fluigStatus: string;
   oMOPCod: string;
@@ -17,7 +17,7 @@ export interface ISpreadsheetTask {
   description: string;
 }
 
-export default class SpreadsheetTaskModel implements ISpreadsheetTask {
+export default class SheetTaskModel implements ISheetTask {
   @Expose({ name: 'Solicitação' })
   solicitationId: number;
 

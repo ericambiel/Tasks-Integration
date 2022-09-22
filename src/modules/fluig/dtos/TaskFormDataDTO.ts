@@ -1,7 +1,7 @@
 /**
  * Object created by a task form at Fluig
  */
-import { ISpreadsheetOMOPModel } from '@modules/integration/infra/local/models/SpreadsheetOMOPModel';
+import { ISheetOMOPModel } from '@modules/integration/infra/local/models/SheetOMOPModel';
 import { FormPropertyDTO } from '@modules/fluig/dtos/FormPropertyDTO';
 
 export type TaskFormDataDTO = [
@@ -79,7 +79,7 @@ export type TaskFormDataDTO = [
   {
     name: 'tipoApontamento';
     /* Type of project task in */
-    value: ISpreadsheetOMOPModel['projectType'];
+    value: ISheetOMOPModel['projectType'];
   },
   {
     name: 'codTecnico';

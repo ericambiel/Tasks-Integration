@@ -1,12 +1,12 @@
 import { Expose } from 'class-transformer';
 
-export interface ISpreadsheetFluigUser {
+export interface ISheetFluigUser {
   username: string;
   password: string;
   employeeReg: string;
 }
 
-export default class SpreadsheetFluigUser implements ISpreadsheetFluigUser {
+export default class SheetFluigUser implements ISheetFluigUser {
   @Expose({ name: 'Usuário Fluig' })
   username: string;
 

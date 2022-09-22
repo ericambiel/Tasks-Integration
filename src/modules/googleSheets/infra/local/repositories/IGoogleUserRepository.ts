@@ -1,5 +1,6 @@
 import { Credentials } from 'google-auth-library';
 import GoogleUserInformationModel from '@modules/googleSheets/infra/local/models/GoogleUserInformationModel';
+import { EventEmitter } from 'events';
 
 /** @author Eric Ambiel */
 export type UserTokenInfo = Credentials & {
@@ -7,7 +8,7 @@ export type UserTokenInfo = Credentials & {
 };
 
 /** @author Eric Ambiel */
-export interface IGoogleUserRepository {
+export interface IGoogleUserRepository extends EventEmitter {
   /** @author Eric Ambiel */
   list(): UserTokenInfo[];
 

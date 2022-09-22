@@ -5,17 +5,24 @@ import { OAuth2Client } from 'google-auth-library';
 import { inject, singleton } from 'tsyringe';
 import FilesHandlerHelper from '@shared/helpers/FilesHandlerHelper';
 import { EventEmitter } from 'events';
+import ConsoleLog from '@libs/ConsoleLog';
+import { api } from '@configs/*';
 import { IGoogleClientRepository } from './IGoogleClientRepository';
 
-// TODO: create a class to put all events there, call this class in begin of initialization server
-const eventEmitter = new EventEmitter();
-
-eventEmitter.on('loadClientsCredentialFileOK', () =>
-  console.log('All clients credential files was loaded.'),
-);
+// // TODO: create a class to put all events there, call this class in begin of initialization server
+// const eventEmitter = new EventEmitter();
+//
+// eventEmitter.on('loadedClientsCredentialFile', () =>
+//   console.log('All clients credential files was loaded.'),
+// );
 
 @singleton()
-export default class GoogleClientRepository implements IGoogleClientRepository {
+export default class GoogleClientRepository
+  extends EventEmitter
+  implements IGoogleClientRepository
+{
+  private readonly apiConfig = api();
+
   private clientsCredential: GoogleClientCredential[];
 
   constructor(
@@ -27,13 +34,20 @@ export default class GoogleClientRepository implements IGoogleClientRepository {
     @inject(GoogleAPIFacade)
     private googleAPI: GoogleAPIFacade,
   ) {
+    super();
     this.loadClientsCredentialFile(clientCredentialFilePath).then(() => {
       // Register all loaded clients.
       // P.S.: Clients are registered by theirs "client_id" credential
       this.clientsCredential.forEach(clientCredential =>
         this.googleAPI.oAuth2ClientFactor(clientCredential),
       );
-      eventEmitter.emit('loadClientsCredentialFileOK');
+      ConsoleLog.print(
+        'All clients credential files were loaded.',
+        'info',
+        'GoogleClientRepository',
+        this.apiConfig.SILENT,
+      );
+      this.emit('loadedClientsCredentialFiles');
     });
   }
 

@@ -2,9 +2,9 @@ import { inject } from 'tsyringe';
 import CreateTasksForWorkflowService from '@modules/fluig/services/CreateTasksForWorkflowService';
 import AuthorizeFluigUserService from '@modules/fluig/services/AuthorizeFluigUserService';
 import GetSpreadsheetService from '@modules/googleSheets/services/GetSpreadsheetService';
-import AuthorizeGoogleClientServer from '@modules/googleSheets/services/AuthorizeGoogleClientServer';
+import AuthorizeUserToClientGoogleServer from '@modules/googleSheets/services/AuthorizeUserToClientGoogleServer';
 import { plainToInstance } from 'class-transformer';
-import SpreadsheetTaskModel from '@modules/integration/infra/local/models/SpreadsheetTaskModel';
+import SheetTaskModel from '@modules/integration/infra/local/models/SheetTaskModel';
 import { authorizeUserAxiosFluigTester } from '@shared/__test__/helper.test';
 import { WorkflowTaskDTO } from '@modules/fluig/dtos/WorkflowTaskDTO';
 
@@ -12,8 +12,8 @@ export default class IntegrationController {
   constructor(
     @inject(GetSpreadsheetService)
     private getSpreadsheetService: GetSpreadsheetService,
-    @inject(AuthorizeGoogleClientServer)
-    private authorizeGoogleClientServer: AuthorizeGoogleClientServer,
+    @inject(AuthorizeUserToClientGoogleServer)
+    private authorizeGoogleClientServer: AuthorizeUserToClientGoogleServer,
     @inject(AuthorizeFluigUserService)
     private authorizeUserFluigService: AuthorizeFluigUserService,
     @inject(CreateTasksForWorkflowService)
@@ -21,11 +21,6 @@ export default class IntegrationController {
   ) {}
 
   async createWorkflowFluig(): Promise<void> {
-    await this.authorizeGoogleClientServer.execute({
-      clientId: 'aasdasdasdasd',
-      userToken: { refresh_token: 'asdasdasdasd' },
-    });
-
     // await this.authorizeUserFluigService.execute('asas', 'asasas');
     await authorizeUserAxiosFluigTester();
 
@@ -39,7 +34,7 @@ export default class IntegrationController {
     //   range: 'Class Data!A2:E',
     // });
 
-    const tasks = plainToInstance(SpreadsheetTaskModel, spreadsheetTasks);
+    const tasks = plainToInstance(SheetTaskModel, spreadsheetTasks);
     // const oMOPs = plainToInstance(SpreadsheetOMOPModel, spreadsheetOMOPs);
 
     const tasksFormData = await this.createTasksForWorkflowService.execute(

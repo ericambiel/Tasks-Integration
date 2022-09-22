@@ -1,4 +1,4 @@
-import { ISpreadsheetOMOPModel } from '@modules/integration/infra/local/models/SpreadsheetOMOPModel';
+import { ISheetOMOPModel } from '@modules/integration/infra/local/models/SheetOMOPModel';
 
 export type WorkTypeDTO = {
   /** @example
@@ -9,7 +9,7 @@ export type WorkTypeDTO = {
     'nrOM_OP',
     string,
     'tpApontamento',
-    ISpreadsheetOMOPModel['projectType'],
+    ISheetOMOPModel['projectType'],
   ]; // "nrOM_OP" and "tpApontamento" could be any string
   /** @example
    * totvsBuscaTarefaOperacaoAptoDematic

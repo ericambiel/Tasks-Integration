@@ -1,18 +1,24 @@
 import { inject, singleton } from 'tsyringe';
 import FilesHandlerHelper from '@shared/helpers/FilesHandlerHelper';
+import ConsoleLog from '@libs/ConsoleLog';
+import { api } from '@configs/*';
 import { EventEmitter } from 'events';
 import { IGoogleUserRepository, UserTokenInfo } from './IGoogleUserRepository';
 
-const eventEmitter = new EventEmitter();
+// const eventEmitter = new EventEmitter();
 
-// TODO: create a class to put all events there, call this class in begin of initialization server
-eventEmitter.on('loadUsersTokenFiles', () =>
-  console.log('All users token files was loaded.'),
-);
+// eventEmitter.on('loadedUsersTokenFiles', () =>
+//   console.log('All users token files was loaded.'),
+// );
 
 /** @author Eric Ambiel */
 @singleton<IGoogleUserRepository>()
-export default class GoogleUserRepository implements IGoogleUserRepository {
+export default class GoogleUserRepository
+  extends EventEmitter
+  implements IGoogleUserRepository
+{
+  private readonly apiConfig = api();
+
   private usersTokenInfo: UserTokenInfo[];
 
   constructor(
@@ -21,8 +27,15 @@ export default class GoogleUserRepository implements IGoogleUserRepository {
     @inject(FilesHandlerHelper)
     private fileHandler: FilesHandlerHelper,
   ) {
+    super();
     this.loadUsersTokenFiles(tokensPath).then(() => {
-      eventEmitter.emit('loadUsersTokenFiles');
+      ConsoleLog.print(
+        'All users token files were loaded.',
+        'info',
+        'GoogleUserRepository',
+        this.apiConfig.SILENT,
+      );
+      this.emit('loadedUsersTokenFiles');
     });
   }
 

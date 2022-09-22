@@ -4,6 +4,9 @@ import { IFluigUserRepository } from '@modules/fluig/infra/local/repositories/IF
 import { IFluigUserModel } from '@modules/fluig/infra/local/models/FluigUserModel';
 import AxiosFacade from '@shared/facades/AxiosFacade';
 import { Axios } from 'axios';
+import fluigApi from '@config/fluigApi';
+
+const fluigApiConf = fluigApi();
 
 @injectable()
 export default class RegisterUserService {
@@ -16,8 +19,21 @@ export default class RegisterUserService {
     private axios: Axios,
   ) {}
 
-  execute(user: IFluigUserModel) {
-    this.axiosFacade.container.registerInstance(user.userUUID, this.axios);
+  execute(user: IFluigUserModel): void;
+
+  execute(users: IFluigUserModel[]): void;
+
+  execute(users: IFluigUserModel[] | IFluigUserModel): void {
+    if (Array.isArray(users)) users.forEach(user => this.createUser(user));
+    else this.createUser(users);
+  }
+
+  private createUser(user: IFluigUserModel) {
+    this.axiosFacade.axiosFactor({
+      baseURL: fluigApiConf.BASEURL,
+      Origin: fluigApiConf.ORIGIN,
+      instanceId: user.userUUID,
+    });
     this.repository.create(user);
   }
 }

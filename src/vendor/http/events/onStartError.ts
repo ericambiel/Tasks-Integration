@@ -1,12 +1,12 @@
+import ConsoleLog from '@libs/ConsoleLog';
+import { api } from '@configs/*';
+
 /**
  * Set up an error listener and return it.
  *
  * @param {string|number} port
  * @return {(error: any) => void} onError
  */
-import ConsoleLog from '@libs/ConsoleLog';
-import { api } from '@configs/*';
-
 export default function onError(port: string | number): (error: Error) => void {
   return (error: any) => {
     const apiConfig = api();
