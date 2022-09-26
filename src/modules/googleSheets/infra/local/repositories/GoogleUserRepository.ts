@@ -5,12 +5,6 @@ import { api } from '@configs/*';
 import { EventEmitter } from 'events';
 import { IGoogleUserRepository, UserTokenInfo } from './IGoogleUserRepository';
 
-// const eventEmitter = new EventEmitter();
-
-// eventEmitter.on('loadedUsersTokenFiles', () =>
-//   console.log('All users token files was loaded.'),
-// );
-
 /** @author Eric Ambiel */
 @singleton<IGoogleUserRepository>()
 export default class GoogleUserRepository

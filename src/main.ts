@@ -119,22 +119,21 @@ async function startGoogleApi() {
   const repositoryUser =
     container.resolve<IGoogleUserRepository>(GoogleUserRepository);
 
-  const events: Promise<unknown>[] = [];
+  const events: Promise<void>[] = [];
 
   events.push(
     new Promise(resolve => {
-      repositoryClient.once('loadedClientsCredentialFiles', () =>
-        resolve('done'),
-      );
+      repositoryClient.once('loadedClientsCredentialFiles', () => resolve());
     }),
   );
 
   events.push(
     new Promise(resolve => {
-      repositoryUser.once('loadedUsersTokenFiles', () => resolve('done'));
+      repositoryUser.once('loadedUsersTokenFiles', () => resolve());
     }),
   );
 
+  //  Waiting for all needed events
   await Promise.all(events);
 
   const serviceAuth = container.resolve(AuthorizeUserToClientGoogleServer);
