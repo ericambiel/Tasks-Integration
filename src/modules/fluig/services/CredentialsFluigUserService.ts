@@ -23,7 +23,10 @@ export default class CredentialsFluigUserService {
 
   async execute(username: string, password: string): Promise<FluigCredentials> {
     try {
-      const headers = await this.fluigAPIHelper.loginUser(username, password);
+      const headers = await this.fluigAPIHelper.geUserCredentials(
+        username,
+        password,
+      );
 
       // TODO: use celebrate to check received payload attributes
       return {

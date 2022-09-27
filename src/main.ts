@@ -6,22 +6,10 @@ import ConsoleLog from '@libs/ConsoleLog';
 import { container } from 'tsyringe';
 import { IGoogleUserRepository } from '@modules/googleSheets/infra/local/repositories/IGoogleUserRepository';
 import GoogleUserRepository from '@modules/googleSheets/infra/local/repositories/GoogleUserRepository';
-import AuthorizeUserToClientGoogleServer from '@modules/googleSheets/services/AuthorizeUserToClientGoogleServer';
-import CredentialsFluigUserService from '@modules/fluig/services/CredentialsFluigUserService';
-import { FluigUserModel } from '@modules/fluig/infra/local/models/FluigUserModel';
-import { plainToInstance } from 'class-transformer';
-import GetUserInformation from '@modules/fluig/services/GetUserInformation';
-import RegisterUserService from '@modules/fluig/services/RegisterUserService';
-import GetSpreadsheetService from '@modules/googleSheets/services/GetSpreadsheetService';
-import GetSpreadsheetDetailsService from '@modules/googleSheets/services/GetSpreadsheetDetailsService';
-import integration from '@config/integration';
-import SheetFluigUser, {
-  ISheetFluigUser,
-} from '@modules/integration/infra/local/models/SheetFluigUser';
 import googleApi from '@config/googleApi';
 import { IGoogleClientRepository } from '@modules/googleSheets/infra/local/repositories/IGoogleClientRepository';
 import GoogleClientRepository from '@modules/googleSheets/infra/local/repositories/GoogleClientRepository';
-import UpdateUserService from '@modules/fluig/services/UpdateUserService';
+import RegisterNewConnectionsService from '@modules/integration/services/RegisterNewConnectionsService';
 // import startExpressServer from './vendor/app';
 
 // Load Environments from .env
@@ -29,90 +17,8 @@ dotEnvSafe.config({ allowEmptyValues: true });
 
 ConsoleLog.print('Starting server...', 'info', 'SERVER');
 
-// TODO: It need to create a controller for that, and some services.
-function getFluigUsersCredentials(): Promise<SheetFluigUser[]> {
-  const integrationConfig = integration();
-  const getSpreadSheetService = container.resolve(GetSpreadsheetService);
-  const getSpreadsheetDetailsService = container.resolve(
-    GetSpreadsheetDetailsService,
-  );
-  const authorizeUserToClientGoogleServer = container.resolve(
-    AuthorizeUserToClientGoogleServer,
-  );
-  const googleUserRepository = container.resolve(GoogleUserRepository);
-  const googleClientRepository = container.resolve(GoogleClientRepository);
-  const googleUsers = googleUserRepository.list();
-  const {
-    web: { client_id: clientId },
-  } = googleClientRepository.list()[0]; // Get first Google Client
-
-  return Promise.all(
-    googleUsers.map(async googleUser => {
-      // Authorize User to use Google Client
-      await authorizeUserToClientGoogleServer.execute({
-        userSUB: googleUser.user_information.sub,
-        clientId,
-      });
-
-      const spreadsheetsMeta = await getSpreadsheetDetailsService.execute(
-        clientId,
-        integrationConfig.TASK_SPREADSHEET,
-      );
-
-      if (!spreadsheetsMeta[0].id)
-        throw ConsoleLog.print(
-          `Can't get spreadsheet from Google User: ${googleUser.user_information.sub}`,
-          'error',
-          'SERVER',
-        );
-
-      // TODO: Create Integration repository and match userUUID, ClientID, userSUB
-
-      // Get fluig credentials from spreadsheet
-      const spreadsheetFluigUser = await getSpreadSheetService
-        .execute(clientId, {
-          spreadsheetId: spreadsheetsMeta[0].id,
-          range: 'Configurações!F2:H3',
-        })
-        .then(FluigUsers => FluigUsers[0]);
-
-      return plainToInstance(SheetFluigUser, spreadsheetFluigUser);
-    }),
-  );
-}
-
-function authorizeFluigUsers(fluigUsersSheet: ISheetFluigUser[]) {
-  const serviceRegister = container.resolve(RegisterUserService);
-  const serviceUpdate = container.resolve(UpdateUserService);
-
-  return Promise.all(
-    fluigUsersSheet.map(async fluigUserSheet => {
-      // Authorize user in Fluig
-      const { headers, jWTPayload } = await container
-        .resolve(CredentialsFluigUserService)
-        .execute(fluigUserSheet.username, fluigUserSheet.password);
-
-      // Converte Bear JTW to user model
-      const fluigUser = plainToInstance(FluigUserModel, jWTPayload);
-
-      // Register fluig user in the system (Repository and Axios)
-      serviceRegister.execute(fluigUser, headers);
-
-      // Get more information about User
-      fluigUser.userInfo = await container
-        .resolve(GetUserInformation)
-        .execute(fluigUser.userUUID, fluigUser.sub);
-
-      // Update
-      serviceUpdate.execute(fluigUser.userUUID, fluigUser);
-    }),
-  );
-}
-
 async function startFluigApi() {
-  const fluigUsersCredentials = await getFluigUsersCredentials();
-
-  await authorizeFluigUsers(fluigUsersCredentials);
+  await container.resolve(RegisterNewConnectionsService).execute();
 }
 
 async function startGoogleApi() {

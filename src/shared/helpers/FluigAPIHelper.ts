@@ -68,7 +68,10 @@ export default class FluigAPIHelper {
    * @private
    * @author Eric Ambiel
    */
-  async loginUser(username: string, password: string): Promise<AuthHeaders> {
+  async geUserCredentials(
+    username: string,
+    password: string,
+  ): Promise<AuthHeaders> {
     const req = (params: URLSearchParams, config?: AxiosRequestConfig) =>
       this.axiosInstance('loginInstance').post(
         'portal/api/servlet/login.do',
