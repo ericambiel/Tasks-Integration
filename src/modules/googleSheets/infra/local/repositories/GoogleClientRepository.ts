@@ -6,7 +6,6 @@ import { inject, singleton } from 'tsyringe';
 import FilesHandlerHelper from '@shared/helpers/FilesHandlerHelper';
 import { EventEmitter } from 'events';
 import ConsoleLog from '@libs/ConsoleLog';
-import { api } from '@configs/*';
 import { IGoogleClientRepository } from './IGoogleClientRepository';
 
 // // TODO: create a class to put all events there, call this class in begin of initialization server
@@ -21,8 +20,6 @@ export default class GoogleClientRepository
   extends EventEmitter
   implements IGoogleClientRepository
 {
-  private readonly apiConfig = api();
-
   private clientsCredential: GoogleClientCredential[];
 
   constructor(
@@ -44,8 +41,7 @@ export default class GoogleClientRepository
       ConsoleLog.print(
         'All clients credential files were loaded.',
         'info',
-        'GoogleClientRepository',
-        this.apiConfig.SILENT,
+        'GOOGLECLIENTREPO',
       );
       this.emit('loadedClientsCredentialFiles');
     });
@@ -76,8 +72,10 @@ export default class GoogleClientRepository
         JSON.stringify(clientCredential),
       )
       .catch((err: Error) => {
-        throw new Error(
+        throw ConsoleLog.print(
           `Error saving token: "${clientCredential.web.client_id}" to disk: ${err}`,
+          'error',
+          'GOOGLECLIENTREPO',
         );
       });
   }
@@ -88,7 +86,13 @@ export default class GoogleClientRepository
 
   // TODO: Test if instance doesn't exists, throw error
   findById(clientId: string): OAuth2Client {
-    return this.googleAPI.container.resolve(clientId);
+    if (this.googleAPI.container.isRegistered(clientId))
+      return this.googleAPI.container.resolve(clientId);
+    throw ConsoleLog.print(
+      'Informed Google Client instanceId not exists',
+      'error',
+      'GOOGLECLIENTREPO',
+    );
   }
 
   list(): GoogleClientCredential[] {

@@ -1,4 +1,7 @@
-import { IFluigUserModel } from '@modules/fluig/infra/local/models/FluigUserModel';
+import {
+  FluigUserModel,
+  IFluigUserModel,
+} from '@modules/fluig/infra/local/models/FluigUserModel';
 
 /**
  * Fluig User Repository.
@@ -27,6 +30,8 @@ export interface IFluigUserRepository {
    * @author Eric Ambiel
    */
   create(user: IFluigUserModel): void;
+
+  update(userUUID: string, user: FluigUserModel): void;
 
   /**
    * Delete user in this API.

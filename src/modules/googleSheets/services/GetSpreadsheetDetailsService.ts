@@ -2,20 +2,22 @@ import { inject, injectable } from 'tsyringe';
 import GoogleAPIFacade, {
   GDriveMINEEnum,
 } from '@shared/facades/GoogleAPIFacade';
-import { OAuth2Client } from 'google-auth-library';
-import GoogleUserRepository from '@modules/googleSheets/infra/local/repositories/GoogleUserRepository';
+import GoogleClientRepository from '@modules/googleSheets/infra/local/repositories/GoogleClientRepository';
+import { IGoogleClientRepository } from '@modules/googleSheets/infra/local/repositories/IGoogleClientRepository';
 
 @injectable()
 export default class {
   constructor(
     @inject(GoogleAPIFacade)
     private googleAPI: GoogleAPIFacade,
-    @inject(GoogleUserRepository)
-    private oAuth2Client: OAuth2Client,
+    @inject(GoogleClientRepository)
+    private repository: IGoogleClientRepository,
   ) {}
 
-  execute(spreadsheetName: string) {
-    return this.googleAPI.findFilesDrive(this.oAuth2Client, {
+  execute(clientId: string, spreadsheetName: string) {
+    const oAuth2Client = this.repository.findById(clientId);
+
+    return this.googleAPI.findFilesDrive(oAuth2Client, {
       mimeType: GDriveMINEEnum.spreadsheet,
       name: spreadsheetName,
     });

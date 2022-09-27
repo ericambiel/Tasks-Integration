@@ -7,7 +7,7 @@ import { container } from 'tsyringe';
 import { IGoogleUserRepository } from '@modules/googleSheets/infra/local/repositories/IGoogleUserRepository';
 import GoogleUserRepository from '@modules/googleSheets/infra/local/repositories/GoogleUserRepository';
 import AuthorizeUserToClientGoogleServer from '@modules/googleSheets/services/AuthorizeUserToClientGoogleServer';
-import AuthorizeFluigUserService from '@modules/fluig/services/AuthorizeFluigUserService';
+import CredentialsFluigUserService from '@modules/fluig/services/CredentialsFluigUserService';
 import { FluigUserModel } from '@modules/fluig/infra/local/models/FluigUserModel';
 import { plainToInstance } from 'class-transformer';
 import GetUserInformation from '@modules/fluig/services/GetUserInformation';
@@ -21,6 +21,7 @@ import SheetFluigUser, {
 import googleApi from '@config/googleApi';
 import { IGoogleClientRepository } from '@modules/googleSheets/infra/local/repositories/IGoogleClientRepository';
 import GoogleClientRepository from '@modules/googleSheets/infra/local/repositories/GoogleClientRepository';
+import UpdateUserService from '@modules/fluig/services/UpdateUserService';
 // import startExpressServer from './vendor/app';
 
 // Load Environments from .env
@@ -29,7 +30,7 @@ dotEnvSafe.config({ allowEmptyValues: true });
 ConsoleLog.print('Starting server...', 'info', 'SERVER');
 
 // TODO: It need to create a controller for that, and some services.
-function getCredentialsFluigUsers() {
+function getFluigUsersCredentials(): Promise<SheetFluigUser[]> {
   const integrationConfig = integration();
   const getSpreadSheetService = container.resolve(GetSpreadsheetService);
   const getSpreadsheetDetailsService = container.resolve(
@@ -39,65 +40,79 @@ function getCredentialsFluigUsers() {
     AuthorizeUserToClientGoogleServer,
   );
   const googleUserRepository = container.resolve(GoogleUserRepository);
+  const googleClientRepository = container.resolve(GoogleClientRepository);
   const googleUsers = googleUserRepository.list();
+  const {
+    web: { client_id: clientId },
+  } = googleClientRepository.list()[0]; // Get first Google Client
 
   return Promise.all(
     googleUsers.map(async googleUser => {
       // Authorize User to use Google Client
       await authorizeUserToClientGoogleServer.execute({
-        userToken: googleUser,
+        userSUB: googleUser.user_information.sub,
+        clientId,
       });
 
       const spreadsheetsMeta = await getSpreadsheetDetailsService.execute(
+        clientId,
         integrationConfig.TASK_SPREADSHEET,
       );
 
       if (!spreadsheetsMeta[0].id)
-        throw new Error(
-          `Something wrong with spreadsheet, GUser: ${googleUser.user_information.sub}`,
+        throw ConsoleLog.print(
+          `Can't get spreadsheet from Google User: ${googleUser.user_information.sub}`,
+          'error',
+          'SERVER',
         );
 
-      // Get fluig credentials from spreadsheet
-      const spreadsheetFluigUserDTO = getSpreadSheetService.execute({
-        spreadsheetId: spreadsheetsMeta[0].id,
-        range: 'Configurações!A1:B2',
-      });
+      // TODO: Create Integration repository and match userUUID, ClientID, userSUB
 
-      return plainToInstance(SheetFluigUser, spreadsheetFluigUserDTO);
+      // Get fluig credentials from spreadsheet
+      const spreadsheetFluigUser = await getSpreadSheetService
+        .execute(clientId, {
+          spreadsheetId: spreadsheetsMeta[0].id,
+          range: 'Configurações!F2:H3',
+        })
+        .then(FluigUsers => FluigUsers[0]);
+
+      return plainToInstance(SheetFluigUser, spreadsheetFluigUser);
     }),
   );
 }
 
-function getAuthorizedFluigUsers(fluigUsersSheet: ISheetFluigUser[]) {
+function authorizeFluigUsers(fluigUsersSheet: ISheetFluigUser[]) {
+  const serviceRegister = container.resolve(RegisterUserService);
+  const serviceUpdate = container.resolve(UpdateUserService);
+
   return Promise.all(
     fluigUsersSheet.map(async fluigUserSheet => {
       // Authorize user in Fluig
-      const authorization = container
-        .resolve(AuthorizeFluigUserService)
+      const { headers, jWTPayload } = await container
+        .resolve(CredentialsFluigUserService)
         .execute(fluigUserSheet.username, fluigUserSheet.password);
 
       // Converte Bear JTW to user model
-      const fluigUser = plainToInstance(FluigUserModel, authorization);
+      const fluigUser = plainToInstance(FluigUserModel, jWTPayload);
+
+      // Register fluig user in the system (Repository and Axios)
+      serviceRegister.execute(fluigUser, headers);
 
       // Get more information about User
       fluigUser.userInfo = await container
         .resolve(GetUserInformation)
-        .execute(fluigUser.sub);
+        .execute(fluigUser.userUUID, fluigUser.sub);
 
-      return fluigUser;
+      // Update
+      serviceUpdate.execute(fluigUser.userUUID, fluigUser);
     }),
   );
 }
 
 async function startFluigApi() {
-  const fluigUsersCredentials = await getCredentialsFluigUsers();
+  const fluigUsersCredentials = await getFluigUsersCredentials();
 
-  const authorizedFluigUsers = await getAuthorizedFluigUsers(
-    fluigUsersCredentials,
-  );
-
-  // Register all fluig users in the system (Repository and Axios)
-  container.resolve(RegisterUserService).execute(authorizedFluigUsers);
+  await authorizeFluigUsers(fluigUsersCredentials);
 }
 
 async function startGoogleApi() {
@@ -136,13 +151,16 @@ async function startGoogleApi() {
   //  Waiting for all needed events
   await Promise.all(events);
 
-  const serviceAuth = container.resolve(AuthorizeUserToClientGoogleServer);
-  const usersToken = repositoryUser.list();
-
-  // Authorize all Google users
-  await Promise.all(
-    usersToken.map(userToken => serviceAuth.execute({ userToken })),
-  );
+  // const serviceAuth = container.resolve(AuthorizeUserToClientGoogleServer);
+  // const usersToken = repositoryUser.list();
+  // const {
+  //   web: { client_id: clientId },
+  // } = repositoryClient.list()[0]; // Get first Google Client
+  //
+  // // Authorize all Google users to specific client
+  // await Promise.all(
+  //   usersToken.map(userToken => serviceAuth.execute({ userToken, clientId })),
+  // );
 }
 
 export default async function main() {

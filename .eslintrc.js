@@ -36,7 +36,14 @@ module.exports = {
     'import/extensions': ['error', 'ignorePackages', { ts: 'never' }],
     'import/no-extraneous-dependencies': [
       'error',
-      { devDependencies: ['**/*.test.js', '**/*.spec.js', 'jest.config.*'] },
+      {
+        devDependencies: [
+          '**/*.test.js',
+          '**/*.spec.js',
+          'jest.config.*',
+          'vite.config.*',
+        ],
+      },
     ],
   },
   settings: {

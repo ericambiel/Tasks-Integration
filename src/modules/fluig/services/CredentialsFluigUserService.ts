@@ -1,7 +1,7 @@
 import { inject, injectable } from 'tsyringe';
 import { IFluigUserModel } from '@modules/fluig/infra/local/models/FluigUserModel';
 import { extractPayloadFromJWT } from '@shared/helpers/smallHelper';
-import FluigAPIHelper from '@shared/helpers/FluigAPIHelper';
+import FluigAPIHelper, { AuthHeaders } from '@shared/helpers/FluigAPIHelper';
 
 export type JWTPayloadFluig = IFluigUserModel & {
   exp: number;
@@ -9,22 +9,29 @@ export type JWTPayloadFluig = IFluigUserModel & {
   aud: string;
 };
 
+export type FluigCredentials = {
+  jWTPayload: JWTPayloadFluig;
+  headers: AuthHeaders;
+};
+
 @injectable()
-export default class AuthorizeFluigUserService {
+export default class CredentialsFluigUserService {
   constructor(
     @inject(FluigAPIHelper)
     private fluigAPIHelper: FluigAPIHelper,
   ) {}
 
-  async execute(username: string, password: string): Promise<JWTPayloadFluig> {
+  async execute(username: string, password: string): Promise<FluigCredentials> {
     try {
-      const authorization: string = await this.fluigAPIHelper.loginUser(
-        username,
-        password,
-      );
+      const headers = await this.fluigAPIHelper.loginUser(username, password);
 
       // TODO: use celebrate to check received payload attributes
-      return extractPayloadFromJWT<JWTPayloadFluig>(authorization);
+      return {
+        jWTPayload: extractPayloadFromJWT<JWTPayloadFluig>(
+          headers.Authorization,
+        ),
+        headers,
+      };
     } catch (e) {
       throw new Error(`${e}`);
     }

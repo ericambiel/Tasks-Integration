@@ -44,14 +44,15 @@
         "vendor/providers/*"
       ]
     },
-    "typeRoots": [
-      "./node_modules/@types"
+    "types": [
+      "vitest/globals"
     ]
   },
   "exclude": [
     "assets",
     "jest.*",
     "prettier.*",
-    "tsconfig.*"
+    "tsconfig.*",
+    "vite.*"
   ]
 }

@@ -1,15 +1,15 @@
 import 'reflect-metadata';
 
 import { container } from 'tsyringe';
-import AuthorizeFluigUserService from '@modules/fluig/services/AuthorizeFluigUserService';
+import CredentialsFluigUserService from '@modules/fluig/services/CredentialsFluigUserService';
 import { IFluigUserRepository } from '@modules/fluig/infra/local/repositories/IFluigUserRepository';
 import FluigUserRepository from '@modules/fluig/infra/local/repositories/FluigUserRepository';
 import { IFluigUserModel } from '@modules/fluig/infra/local/models/FluigUserModel';
 import { registerAxiosCleanInstanceFluigTester } from '@shared/__test__/helper.test';
 import FluigUserInfoModel from '@modules/fluig/infra/local/models/FluigUserInfoModel';
 
-describe('Unit test - AuthorizeUserService', () => {
-  let service: AuthorizeFluigUserService;
+describe('Unit test - CredentialsFluigUserService', () => {
+  let service: CredentialsFluigUserService;
   let repository: IFluigUserRepository;
 
   // TODO: Create schema and use Joy to validade exactly kinds values(Useful to be used on celebrate too)
@@ -31,10 +31,11 @@ describe('Unit test - AuthorizeUserService', () => {
 
     repository = container.resolve<IFluigUserRepository>(FluigUserRepository);
 
-    service = container.resolve(AuthorizeFluigUserService);
+    service = container.resolve(CredentialsFluigUserService);
   });
 
-  it('Should be possible authorize user in Fluig', async () => {
+  // TODO: FIX this test
+  it('Should be possible get User Credential', async () => {
     await service.execute(
       process.env.FLUIG_USERNAME ?? '',
       process.env.FLUIG_PASSWORD ?? '',

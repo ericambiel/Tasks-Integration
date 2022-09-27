@@ -2,8 +2,11 @@ import { Axios, AxiosRequestConfig } from 'axios';
 import { ColleagueInformationDTO } from '@modules/fluig/dtos/ColleagueInformationDTO';
 import { URLSearchParams } from 'url';
 import { DatasetReqDTO } from '@modules/fluig/dtos/DatasetReqDTO';
-import { inject, injectable } from 'tsyringe';
+import { inject, singleton } from 'tsyringe';
 import { DatasetResDTO } from '@modules/fluig/dtos/DatasetResDTO';
+import ConsoleLog from '@libs/ConsoleLog';
+import AxiosFacade from '@shared/facades/AxiosFacade';
+import fluigApi from '@config/fluigApi';
 
 // eslint-disable-next-line no-shadow
 export enum NameFnEnum {
@@ -36,12 +39,27 @@ export interface ITechnicianRes extends DatasetResDTO {
   };
 }
 
-@injectable()
+export type AuthHeaders = {
+  Cookie: string;
+  Authorization: string;
+};
+const fluigApiConf = fluigApi();
+
+@singleton()
 export default class FluigAPIHelper {
+  private axiosInstance = (instanceId: string) =>
+    this.axiosFacade.container.resolve<Axios>(instanceId);
+
   constructor(
-    @inject(Axios)
-    private axios: Axios,
-  ) {}
+    @inject(AxiosFacade)
+    private axiosFacade: AxiosFacade,
+  ) {
+    axiosFacade.axiosFactor({
+      baseURL: fluigApiConf.BASEURL,
+      Origin: fluigApiConf.ORIGIN,
+      instanceId: 'loginInstance',
+    });
+  }
 
   /**
    * Login user to do request to Fluig
@@ -50,9 +68,13 @@ export default class FluigAPIHelper {
    * @private
    * @author Eric Ambiel
    */
-  async loginUser(username: string, password: string): Promise<string> {
+  async loginUser(username: string, password: string): Promise<AuthHeaders> {
     const req = (params: URLSearchParams, config?: AxiosRequestConfig) =>
-      this.axios.post('portal/api/servlet/login.do', params.toString(), config);
+      this.axiosInstance('loginInstance').post(
+        'portal/api/servlet/login.do',
+        params.toString(),
+        config,
+      );
 
     const params = new URLSearchParams({
       j_username: username,
@@ -65,38 +87,44 @@ export default class FluigAPIHelper {
       headers: { 'set-cookie': setCookie },
     } = await req(params);
 
-    if (!setCookie) throw Error('Not possible acquire cookies from server');
+    if (!setCookie)
+      throw ConsoleLog.print('Not possible acquire cookies from server');
 
     // Get Bearer token
     const {
       headers: { authorization },
     } = await req(params, { headers: { Cookie: setCookie.toString() } });
 
-    const headers = {
+    return {
       Cookie: setCookie.toString(),
       Authorization: authorization,
     };
 
     // Set Bear token / Cookies to all request to this instance
     // eslint-disable-next-line no-param-reassign
-    this.axios.defaults.headers.common = headers;
+    // this.axios.defaults.headers.common = headers;
 
-    return headers.Authorization;
+    // return headers.Authorization;
   }
 
   /**
    * Get information from Colleague by userName
+   * @param instanceId Axios instance ID
    * @param userName
    */
-  getColleagueInfo(userName: string) {
-    return this.axios
+  getColleagueInfo(instanceId: string, userName: string) {
+    return this.axiosInstance(instanceId)
       .get<ColleagueInformationDTO>(
         `ecm/api/rest/ecm/colleague/getColleagueByLogin/?username=${userName}`,
       )
       .then(res => res.data);
   }
 
-  private getDataSet<T>(oMOP: string, searchFor: NameFnEnum) {
+  private getDataSet<T>(
+    instanceId: string,
+    oMOP: string,
+    searchFor: NameFnEnum,
+  ) {
     // eslint-disable-next-line no-shadow
     enum FieldEnum {
       totvsBuscaOMAptoDematic = 'codOm',
@@ -130,22 +158,30 @@ export default class FluigAPIHelper {
         order: null,
       };
 
-    return this.axios.post<DatasetResDTO & T>(
+    return this.axiosInstance(instanceId).post<DatasetResDTO & T>(
       'api/public/ecm/dataset/datasets',
       requestDataDataset(oMOP, searchFor),
     );
   }
 
   getManagerOMOP(
+    instanceId: string,
     oMOP: string,
     searchFor: NameFnEnum.OP | NameFnEnum.OM,
   ): Promise<IManagerRes> {
-    return this.getDataSet<IManagerRes>(oMOP, searchFor).then(res => res.data);
-  }
-
-  getTechnician(technicianCode: string): Promise<ITechnicianRes> {
-    return this.getDataSet<ITechnicianRes>(technicianCode, NameFnEnum.TEC).then(
+    return this.getDataSet<IManagerRes>(instanceId, oMOP, searchFor).then(
       res => res.data,
     );
+  }
+
+  getTechnician(
+    instanceId: string,
+    technicianCode: string,
+  ): Promise<ITechnicianRes> {
+    return this.getDataSet<ITechnicianRes>(
+      instanceId,
+      technicianCode,
+      NameFnEnum.TEC,
+    ).then(res => res.data);
   }
 }

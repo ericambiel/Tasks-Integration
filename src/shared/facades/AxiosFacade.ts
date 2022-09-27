@@ -1,11 +1,17 @@
 import { singleton } from 'tsyringe';
-import axios, { Axios, AxiosInstance, AxiosRequestConfig } from 'axios';
+import axios, {
+  Axios,
+  AxiosInstance,
+  AxiosRequestConfig,
+  AxiosRequestHeaders,
+} from 'axios';
 import ContainerManagerHelper from '@helpers/ContainerManagerHelper';
 
 type OptionAxiosInstance = {
   baseURL: string;
   Origin: string;
   instanceId?: string;
+  headers?: AxiosRequestHeaders;
 };
 
 @singleton()
@@ -27,7 +33,11 @@ export default class AxiosFacade extends ContainerManagerHelper {
     const axiosInstance: AxiosInstance = axios.create({
       ...this.axiosConfig,
       baseURL: options.baseURL,
-      headers: { Origin: options.Origin ?? false, ...this.axiosConfig.headers },
+      headers: {
+        Origin: options.Origin ?? false,
+        ...options.headers,
+        ...this.axiosConfig.headers,
+      },
     });
 
     if (options.instanceId)

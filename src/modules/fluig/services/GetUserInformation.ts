@@ -10,8 +10,9 @@ export default class GetUserInformation {
     private fluigAPIHelper: FluigAPIHelper,
   ) {}
 
-  async execute(userName: string) {
+  async execute(instanceId: string, userName: string) {
     const { content: userInfo } = await this.fluigAPIHelper.getColleagueInfo(
+      instanceId,
       userName,
     );
 

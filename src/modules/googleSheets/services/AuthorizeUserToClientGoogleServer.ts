@@ -2,15 +2,17 @@ import { inject, singleton } from 'tsyringe';
 import GoogleAPIFacade, {
   MinimumScopesType,
 } from '@shared/facades/GoogleAPIFacade';
-import { Credentials, OAuth2Client } from 'google-auth-library';
+import { OAuth2Client } from 'google-auth-library';
+import ConsoleLog from '@libs/ConsoleLog';
+import GoogleUserRepository from '@modules/googleSheets/infra/local/repositories/GoogleUserRepository';
 import GoogleClientRepository from '../infra/local/repositories/GoogleClientRepository';
 import { IGoogleClientRepository } from '../infra/local/repositories/IGoogleClientRepository';
 
 type AuthorizeGoogleClientServerOption = {
-  /** Google user credential, acquired from token */
-  userToken: Credentials;
-  /** if not given it, will be used the first registered client instance */
-  clientId?: string;
+  /** Google user SUB, acquired from token-info */
+  userSUB: string;
+  /** Client ID instance */
+  clientId: string;
 };
 
 /**
@@ -28,13 +30,13 @@ export default class AuthorizeUserToClientGoogleServer {
     @inject(GoogleAPIFacade)
     private googleAPI: GoogleAPIFacade,
     @inject(GoogleClientRepository)
-    private repository: IGoogleClientRepository,
+    private clientRepository: IGoogleClientRepository,
+    @inject(GoogleUserRepository)
+    private userRepository: GoogleUserRepository,
   ) {}
 
   /**
    * Authorize Google Users in Google client service.
-   * P.S: If "clientId" not given then the first
-   * Google client service will be used.
    * @param options
    * @return {Promise<string | OAuth2Client>} Instance of OAuth2Client or URL to authorize client server to access user.
    * @author Eric Ambiel
@@ -42,23 +44,26 @@ export default class AuthorizeUserToClientGoogleServer {
    *
    */
   async execute(options: AuthorizeGoogleClientServerOption): Promise<void> {
-    let oAuth2Client: OAuth2Client;
+    const usrCredential = this.userRepository.findBySub(options.userSUB);
 
-    if (options.clientId)
-      oAuth2Client = this.repository.findById(options.clientId);
-    else
-      oAuth2Client = this.repository.findById(
-        this.repository.list()[0].web.client_id,
-      );
+    const oAuth2Client: OAuth2Client = this.clientRepository.findById(
+      options.clientId,
+    );
 
     try {
-      oAuth2Client.setCredentials(options.userToken);
+      oAuth2Client.setCredentials(usrCredential);
       await oAuth2Client.refreshAccessToken(); // After refresh, set too.
     } catch (err) {
-      console.error(
+      ConsoleLog.print(
         `Re-authentication is needed, same thing wrong with Client credentials: ${err}`,
+        'error',
+        'GOOGLECLIENTAUTH',
       );
-      throw Error(this.getAuthUrl(oAuth2Client));
+      throw ConsoleLog.print(
+        this.getAuthUrl(oAuth2Client),
+        'error',
+        'GOOGLECLIENTAUTH',
+      );
     }
   }
 
