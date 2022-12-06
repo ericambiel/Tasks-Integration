@@ -1,5 +1,8 @@
 import { Expose, Transform } from 'class-transformer';
 import { stringToEnum } from '@shared/helpers/smallHelper';
+import Metadata, {
+  IMetadata,
+} from '@modules/integration/infra/local/models/Metadata';
 
 // eslint-disable-next-line no-shadow
 enum FluigStatusEnum {
@@ -8,7 +11,7 @@ enum FluigStatusEnum {
   NOK = 'pointedTaskNotOK',
 }
 
-export interface ISheetTask {
+export interface ISheetTask extends IMetadata {
   solicitationId: number;
   fluigStatus: string;
   oMOPCod: string;
@@ -17,7 +20,7 @@ export interface ISheetTask {
   description: string;
 }
 
-export default class SheetTaskModel implements ISheetTask {
+export default class SheetTaskModel extends Metadata implements ISheetTask {
   @Expose({ name: 'Solicitação' })
   solicitationId: number;
 

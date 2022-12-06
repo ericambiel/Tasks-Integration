@@ -4,7 +4,7 @@ import { plainToInstance } from 'class-transformer';
 import FluigUserInfoModel from '@modules/fluig/infra/local/models/FluigUserInfoModel';
 
 @injectable()
-export default class GetUserInformation {
+export default class GetUserInformationService {
   constructor(
     @inject(FluigAPIHelper)
     private fluigAPIHelper: FluigAPIHelper,

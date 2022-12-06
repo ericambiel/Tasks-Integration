@@ -6,18 +6,18 @@ import SheetFluigUser, {
 import integration from '@config/integration';
 import GetSpreadsheetService from '@modules/googleSheets/services/GetSpreadsheetService';
 import GetSpreadsheetDetailsService from '@modules/googleSheets/services/GetSpreadsheetDetailsService';
-import AuthorizeUserToClientGoogleServer from '@modules/googleSheets/services/AuthorizeUserToClientGoogleServer';
+import AuthorizeUserToClientGoogleServerService from '@modules/googleSheets/services/AuthorizeUserToClientGoogleServerService';
 import GoogleUserRepository from '@modules/googleSheets/infra/local/repositories/GoogleUserRepository';
 import GoogleClientRepository from '@modules/googleSheets/infra/local/repositories/GoogleClientRepository';
 import ConsoleLog from '@libs/ConsoleLog';
 import { plainToInstance } from 'class-transformer';
 import RegisterUserService from '@modules/fluig/services/RegisterUserService';
-import UpdateUserService from '@modules/fluig/services/UpdateUserService';
+// import UpdateUserService from '@modules/fluig/services/UpdateUserService';
 import CredentialsFluigUserService from '@modules/fluig/services/CredentialsFluigUserService';
 import { FluigUserModel } from '@modules/fluig/infra/local/models/FluigUserModel';
-import GetUserInformation from '@modules/fluig/services/GetUserInformation';
+// import GetUserInformationService from '@modules/fluig/services/GetUserInformationService';
 import GoogleUserInformationModel from '@modules/googleSheets/infra/local/models/GoogleUserInformationModel';
-import UpdateFluigUserWithDetails from '@modules/fluig/services/UpdateFluigUserWithDetails';
+import UpdateFluigUserWithDetailsService from '@modules/fluig/services/UpdateFluigUserWithDetailsService';
 
 // TODO: Leave all this in Integration Controller
 @injectable()
@@ -33,20 +33,20 @@ export default class RegisterNewConnectionsService {
     private repository: IntegrationRepository,
     @inject(GetSpreadsheetService)
     private getSpreadSheetService: GetSpreadsheetService,
-    @inject(AuthorizeUserToClientGoogleServer)
-    private authorizeUserToClientGoogleServer: AuthorizeUserToClientGoogleServer,
+    @inject(AuthorizeUserToClientGoogleServerService)
+    private authorizeUserToClientGoogleServer: AuthorizeUserToClientGoogleServerService,
     @inject(GetSpreadsheetDetailsService)
     private getSpreadsheetDetailsService: GetSpreadsheetDetailsService,
     @inject(RegisterUserService)
     private registerUserService: RegisterUserService,
-    @inject(UpdateUserService)
-    private updateUserService: UpdateUserService,
-    @inject(GetUserInformation)
-    private getUserInformation: GetUserInformation,
+    // @inject(UpdateUserService)
+    // private updateUserService: UpdateUserService,
+    // @inject(GetUserInformationService)
+    // private getUserInformation: GetUserInformationService,
     @inject(CredentialsFluigUserService)
     private credentialsFluigUserService: CredentialsFluigUserService,
-    @inject(UpdateFluigUserWithDetails)
-    private updateFluigUserWithDetails: UpdateFluigUserWithDetails,
+    @inject(UpdateFluigUserWithDetailsService)
+    private updateFluigUserWithDetails: UpdateFluigUserWithDetailsService,
   ) {}
 
   async execute() {
@@ -106,9 +106,9 @@ export default class RegisterNewConnectionsService {
 
         // Get first fluig credentials from spreadsheet
         const { sheetValues, metadata } = await this.getSpreadSheetService
-          .execute(clientId, {
+          .execute<Record<string, string | null>>(clientId, {
             spreadsheetId: id,
-            range: 'Configurações!F2:H3',
+            range: 'Configurações!F2:!H3',
           })
           .then(FluigUsers => FluigUsers);
 
@@ -152,6 +152,7 @@ export default class RegisterNewConnectionsService {
         this.repository.save({
           googleUserSUB: fluigUserSheet.metadata.userSub,
           fluigUserUUID: fluigUser.userUUID,
+          // googleClientId: 'TRY TO POPULATE' // TODO: TRY TO POPULATE
         });
 
         return fluigUser;

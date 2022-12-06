@@ -1,17 +1,18 @@
 import { Expose } from 'class-transformer';
-import { ISheet } from '@modules/googleSheets/services/GetSpreadsheetService';
+import Metadata, {
+  IMetadata,
+} from '@modules/integration/infra/local/models/Metadata';
 
-export interface ISheetFluigUser {
-  metadata: ISheet<never>['metadata'];
+export interface ISheetFluigUser extends IMetadata {
   username: string;
   password: string;
   employeeReg: string;
 }
 
-export default class SheetFluigUser implements ISheetFluigUser {
-  @Expose({ name: 'metadata' })
-  metadata: ISheet<never>['metadata'];
-
+export default class SheetFluigUser
+  extends Metadata
+  implements ISheetFluigUser
+{
   @Expose({ name: 'Usuário Fluig' })
   username: string;
 

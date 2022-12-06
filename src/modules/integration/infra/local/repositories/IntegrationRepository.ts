@@ -2,9 +2,9 @@ import { singleton } from 'tsyringe';
 import { JWTPayloadGoogleUserDTO } from '@modules/googleSheets/dtos/JWTPayloadGoogleUserDTO';
 
 export type IntegrationConn = {
-  googleUserSUB?: JWTPayloadGoogleUserDTO['sub'];
-  fluigUserUUID?: string;
-  googleClientId?: string[];
+  googleUserSUB: JWTPayloadGoogleUserDTO['sub'];
+  fluigUserUUID: string;
+  googleClientId?: string[]; // TODO: Are not populatede in any place
 };
 
 @singleton()
@@ -16,8 +16,16 @@ export default class IntegrationRepository {
   }
 
   find(options: {
-    fluigUserUUID?: IntegrationConn['fluigUserUUID'];
-    googleUserSUB?: IntegrationConn['googleUserSUB'];
+    fluigUserUUID: IntegrationConn['fluigUserUUID'];
+  }): IntegrationConn | undefined;
+
+  find(options: {
+    googleUserSUB: IntegrationConn['googleUserSUB'];
+  }): IntegrationConn | undefined;
+
+  find(options: {
+    fluigUserUUID: IntegrationConn['fluigUserUUID'];
+    googleUserSUB: IntegrationConn['googleUserSUB'];
   }): IntegrationConn | undefined {
     return this.integrationConns.find(
       integrationConn =>

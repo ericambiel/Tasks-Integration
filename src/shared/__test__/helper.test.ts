@@ -10,7 +10,7 @@ import {
 } from '@modules/fluig/infra/local/models/FluigUserModel';
 import { plainToInstance } from 'class-transformer';
 import RegisterUserService from '@modules/fluig/services/RegisterUserService';
-import GetUserInformation from '@modules/fluig/services/GetUserInformation';
+import GetUserInformationService from '@modules/fluig/services/GetUserInformationService';
 
 function treatReqResAxiosTester(axios: Axios) {
   axios.interceptors.request.use(req => {
@@ -83,7 +83,7 @@ export async function authorizeUserAxiosFluigTester() {
 
   // Get more information about User
   fluigUser.userInfo = await container
-    .resolve(GetUserInformation)
+    .resolve(GetUserInformationService)
     .execute(fluigUser.sub);
 
   // Register User in the system (Repository and Axios)

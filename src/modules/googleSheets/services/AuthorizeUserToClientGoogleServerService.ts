@@ -19,7 +19,7 @@ type AuthorizeGoogleClientServerOption = {
  * @author Eric Ambiel
  */
 @singleton()
-export default class AuthorizeUserToClientGoogleServer {
+export default class AuthorizeUserToClientGoogleServerService {
   private readonly SCOPES: MinimumScopesType = [
     'https://www.googleapis.com/auth/userinfo.profile',
     'https://www.googleapis.com/auth/spreadsheets.readonly',

@@ -26,7 +26,7 @@ export default class GetSpreadsheetService {
     private repository: IGoogleClientRepository,
   ) {}
 
-  async execute(clientId: string, options: GetSpreadsheetValuesOption) {
+  async execute<T>(clientId: string, options: GetSpreadsheetValuesOption) {
     const token =
       this.googleAPI.container.resolve<OAuth2Client>(clientId).credentials
         .id_token;
@@ -38,7 +38,7 @@ export default class GetSpreadsheetService {
 
     const tokenInfo = extractPayloadFromJWT<JWTPayloadGoogleUserDTO>(token);
 
-    return <ISheet<Record<string, string | null>>>{
+    return <ISheet<T>>{
       metadata: { ...options, userSub: tokenInfo.sub },
       sheetValues: await this.googleAPI.getSpreadSheetValuesArrayObj(
         this.repository.findById(clientId),

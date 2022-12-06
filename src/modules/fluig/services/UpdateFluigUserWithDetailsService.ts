@@ -5,7 +5,7 @@ import FluigUserInfoModel from '@modules/fluig/infra/local/models/FluigUserInfoM
 import FluigUserRepository from '@modules/fluig/infra/local/repositories/FluigUserRepository';
 
 @injectable()
-export default class UpdateFluigUserWithDetails {
+export default class UpdateFluigUserWithDetailsService {
   constructor(
     @inject(FluigAPIHelper)
     private fluigAPIHelper: FluigAPIHelper,

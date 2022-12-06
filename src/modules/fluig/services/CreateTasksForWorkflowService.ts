@@ -23,12 +23,16 @@ export default class CreateTasksForWorkflowService {
     descriptionWorkFlow: string,
   ) {
     // Get information about technician (name)
-    const technician = await this.fluigAPIHelper.getTechnician(technicianCode);
+    const technician = await this.fluigAPIHelper.getTechnician(
+      user.userUUID,
+      technicianCode,
+    );
 
     // Get and match manager/task.
     const managers = await Promise.all(
       tasks.map(async task =>
         this.fluigAPIHelper.getManagerOMOP(
+          user.userUUID,
           task.realizadoCodOMOP ?? task.realizadoNumeroOMOP,
           NameFnEnum.OM,
         ),

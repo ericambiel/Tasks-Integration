@@ -1,47 +1,61 @@
 import { inject } from 'tsyringe';
 import CreateTasksForWorkflowService from '@modules/fluig/services/CreateTasksForWorkflowService';
-import AuthorizeFluigUserService from '@modules/fluig/services/AuthorizeFluigUserService';
 import GetSpreadsheetService from '@modules/googleSheets/services/GetSpreadsheetService';
-import AuthorizeUserToClientGoogleServer from '@modules/googleSheets/services/AuthorizeUserToClientGoogleServer';
 import { plainToInstance } from 'class-transformer';
 import SheetTaskModel from '@modules/integration/infra/local/models/SheetTaskModel';
-import { authorizeUserAxiosFluigTester } from '@shared/__test__/helper.test';
 import { WorkflowTaskDTO } from '@modules/fluig/dtos/WorkflowTaskDTO';
+import SheetFluigUser from '@modules/integration/infra/local/models/SheetFluigUser';
+import GetFluigUserService from '@modules/fluig/services/GetFluigUserService';
+import GetUserConectionDetailsService from '@modules/integration/services/GetUserConectionDetailsService';
 
 export default class IntegrationController {
   constructor(
+    @inject(GetUserConectionDetailsService)
+    private getUserConectionDetailsService: GetUserConectionDetailsService,
+    @inject(GetFluigUserService)
+    private getFluigUserService: GetFluigUserService,
     @inject(GetSpreadsheetService)
     private getSpreadsheetService: GetSpreadsheetService,
-    @inject(AuthorizeUserToClientGoogleServer)
-    private authorizeGoogleClientServer: AuthorizeUserToClientGoogleServer,
-    @inject(AuthorizeFluigUserService)
-    private authorizeUserFluigService: AuthorizeFluigUserService,
     @inject(CreateTasksForWorkflowService)
     private createTasksForWorkflowService: CreateTasksForWorkflowService,
   ) {}
 
-  async createWorkflowFluig(): Promise<void> {
-    // await this.authorizeUserFluigService.execute('asas', 'asasas');
-    await authorizeUserAxiosFluigTester();
-
-    const spreadsheetTasks = await this.getSpreadsheetService.execute({
-      spreadsheetId: '123123',
-      range: 'Class Data!A2:E',
+  async sendWorkflowFluig(userSUB: string): Promise<void> {
+    const userConnection = this.getUserConectionDetailsService.execute({
+      googleUserSUB: userSUB,
     });
 
-    // const spreadsheetOMOPs = await this.getSpreadsheetService.execute({
-    //   spreadsheetId: '123123',
-    //   range: 'Class Data!A2:E',
-    // });
+    if (!userConnection) throw Error("Can't find active connections");
+    if (!userConnection.googleClientId)
+      throw Error("Can't find clientId to users");
 
-    const tasks = plainToInstance(SheetTaskModel, spreadsheetTasks);
-    // const oMOPs = plainToInstance(SpreadsheetOMOPModel, spreadsheetOMOPs);
+    const {
+      googleClientId: [clientId],
+      fluigUserUUID: userUUID,
+    } = userConnection;
+
+    const user = await this.getFluigUserService.execute(userUUID);
+
+    const sheetTasks = await this.getSpreadsheetService.execute(clientId, {
+      spreadsheetId: '1uYLY1xtGQRqPeaUMzzmuVM5vb_fYP8qwDjiS1rb0EjE',
+      range: 'Horas!A2:!H',
+    });
+
+    const sheetFluigUser = await this.getSpreadsheetService.execute(clientId, {
+      spreadsheetId: '1uYLY1xtGQRqPeaUMzzmuVM5vb_fYP8qwDjiS1rb0EjE',
+      range: 'Configurações!F2:!H3',
+    });
+
+    const tasks = plainToInstance(SheetTaskModel, sheetTasks);
+    const fluigUser = plainToInstance(SheetFluigUser, sheetFluigUser);
+
+    // TODO: Create service to parse SheetTaskModel to TaskDTO -- STOP HERE
 
     const tasksFormData = await this.createTasksForWorkflowService.execute(
-      {},
-      'aasdasdas',
+      user,
+      fluigUser.employeeReg,
       tasks,
-      'aasdasdasd',
+      'TESTETESTE',
     );
 
     // TODO: Leave this to service Fluig
