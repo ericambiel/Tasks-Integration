@@ -1,6 +1,6 @@
 import { inject } from 'tsyringe';
 import IntegrationRepository, {
-  IntegrationConn,
+  IntegrationConnType,
 } from '@modules/integration/infra/local/repositories/IntegrationRepository';
 
 export default class GetUserConectionDetailsService {
@@ -10,16 +10,16 @@ export default class GetUserConectionDetailsService {
   ) {}
 
   execute(options: {
-    fluigUserUUID: IntegrationConn['fluigUserUUID'];
-  }): IntegrationConn | undefined;
+    fluigUserUUID: IntegrationConnType['fluigUserUUID'];
+  }): IntegrationConnType | undefined;
 
   execute(options: {
-    googleUserSUB: IntegrationConn['googleUserSUB'];
-  }): IntegrationConn | undefined;
+    googleUserSUB: IntegrationConnType['googleUserSUB'];
+  }): IntegrationConnType | undefined;
 
   execute(options: {
-    fluigUserUUID: IntegrationConn['fluigUserUUID'];
-    googleUserSUB: IntegrationConn['googleUserSUB'];
+    fluigUserUUID: IntegrationConnType['fluigUserUUID'];
+    googleUserSUB: IntegrationConnType['googleUserSUB'];
   }) {
     return this.repository.find(options);
   }

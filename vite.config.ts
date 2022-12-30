@@ -2,9 +2,9 @@ import { defineConfig } from 'vitest/config';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 // Loads environment variable globally in all tests.
-import dotEnvSafe from 'dotenv-safe';
+import { config } from 'dotenv-safe';
 
-dotEnvSafe.config({
+config({
   allowEmptyValues: true,
 });
 

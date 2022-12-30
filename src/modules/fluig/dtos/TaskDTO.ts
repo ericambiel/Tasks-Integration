@@ -28,7 +28,7 @@ export type TaskDTO = {
   realizadoProjeto: string;
   /**
    * Cod type of operation realized - Get from 'Workflow - Get Type of Work'
-   * @default "20" | "300"
+   * @default "20" | "301"
    * @example
    *            OM
    * DESLOCAMENTO DE IDA                — '10'
@@ -41,8 +41,8 @@ export type TaskDTO = {
    * HORAS ENGENHARIA ELETRICA          — '200'
    * ENGENHARIA ELETRICA - 23000        — '201'
    * ENGENHARIA ELETRICA - CATB - 23003 — '203'
-   * HORAS ENGENHARIA IT                — '300' @default
-   * GERENCIAMENTO DE IT - CATB 25002   — '301'
+   * HORAS ENGENHARIA IT                — '300'
+   * GERENCIAMENTO DE IT - CATB 25002   — '301' @default
    * HORAS GERENCIA DE PROJETOS         — '400'
    * HORAS - INSTALAÇÃO                 — '500'
    * INSTALACAO CAT B - 31003           — '501'
@@ -55,16 +55,16 @@ export type TaskDTO = {
    * ENGENHARIA R&D - 99994             — '555'
    * Tecnicos 31004                     — '556'
    */
-  realizadoOperacaoTarefa: '20' | '300' | string;
+  realizadoOperacaoTarefa: '20' | '301' | string;
   /**
    * Cod type of operation realized - Get from 'Workflow - Get Type of Work'
    * @example
-   * 'HORAS TRABALHADAS'    - 20
-   * 'HORAS ENGENHARIA IT'  - 300
+   * 'HORAS TRABALHADAS'                  — '20'
+   * 'GERENCIAMENTO DE IT - CATB 25002'   — '301'
    */
   realizadoOperacaoTarefaNome:
     | 'HORAS TRABALHADAS'
-    | 'HORAS ENGENHARIA IT'
+    | 'GERENCIAMENTO DE IT - CATB 25002'
     | string;
   /**
    * Date you performed the task.

@@ -7,11 +7,16 @@ import { WorkflowTaskDTO } from '@modules/fluig/dtos/WorkflowTaskDTO';
 import SheetFluigUser from '@modules/integration/infra/local/models/SheetFluigUser';
 import GetFluigUserService from '@modules/fluig/services/GetFluigUserService';
 import GetUserConectionDetailsService from '@modules/integration/services/GetUserConectionDetailsService';
+import FluigTaskModel from '@modules/fluig/infra/local/models/FluigTaskModel';
+import ListUserConectionDetailsService from '@modules/integration/services/ListUserConectionDetailsService';
+import { IntegrationConnType } from '@modules/integration/infra/local/repositories/IntegrationRepository';
 
 export default class IntegrationController {
   constructor(
     @inject(GetUserConectionDetailsService)
     private getUserConectionDetailsService: GetUserConectionDetailsService,
+    @inject(ListUserConectionDetailsService)
+    private listUserConectionDetailsService: ListUserConectionDetailsService,
     @inject(GetFluigUserService)
     private getFluigUserService: GetFluigUserService,
     @inject(GetSpreadsheetService)
@@ -36,7 +41,7 @@ export default class IntegrationController {
 
     const user = await this.getFluigUserService.execute(userUUID);
 
-    const sheetTasks = await this.getSpreadsheetService.execute(clientId, {
+    const sheetTasksPlain = await this.getSpreadsheetService.execute(clientId, {
       spreadsheetId: '1uYLY1xtGQRqPeaUMzzmuVM5vb_fYP8qwDjiS1rb0EjE',
       range: 'Horas!A2:!H',
     });
@@ -46,16 +51,18 @@ export default class IntegrationController {
       range: 'Configurações!F2:!H3',
     });
 
-    const tasks = plainToInstance(SheetTaskModel, sheetTasks);
+    const sheetTasks = plainToInstance(
+      SheetTaskModel,
+      sheetTasksPlain.sheetValues,
+    );
+    const fluigTasks = plainToInstance(FluigTaskModel, sheetTasks);
     const fluigUser = plainToInstance(SheetFluigUser, sheetFluigUser);
-
-    // TODO: Create service to parse SheetTaskModel to TaskDTO -- STOP HERE
 
     const tasksFormData = await this.createTasksForWorkflowService.execute(
       user,
       fluigUser.employeeReg,
-      tasks,
-      'TESTETESTE',
+      fluigTasks,
+      'Apontamento de horas em Projetos/Atendimentos',
     );
 
     // TODO: Leave this to service Fluig
@@ -86,6 +93,12 @@ export default class IntegrationController {
       };
     });
 
+    console.log(workflowTask);
+
     // TODO: Need create service to send workflowTask
+  }
+
+  async listAllConnections(): Promise<IntegrationConnType[]> {
+    return this.listUserConectionDetailsService.execute();
   }
 }

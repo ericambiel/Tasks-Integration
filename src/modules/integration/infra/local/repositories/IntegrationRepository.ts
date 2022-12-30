@@ -1,32 +1,41 @@
 import { singleton } from 'tsyringe';
 import { JWTPayloadGoogleUserDTO } from '@modules/googleSheets/dtos/JWTPayloadGoogleUserDTO';
+import { randomUUID } from 'crypto';
 
-export type IntegrationConn = {
-  googleUserSUB: JWTPayloadGoogleUserDTO['sub'];
+type IntegrationNewConnType = {
   fluigUserUUID: string;
-  googleClientId?: string[]; // TODO: Are not populatede in any place
+  googleUserSUB: JWTPayloadGoogleUserDTO['sub'];
+  googleClientId: string[];
 };
 
+export type IntegrationConnType = IntegrationNewConnType & {
+  connId: string;
+};
+
+/**
+ * Repository for connections between modules.
+ * @author: Eric Ambiel
+ */
 @singleton()
 export default class IntegrationRepository {
-  private readonly integrationConns: IntegrationConn[];
+  private readonly integrationConns: IntegrationConnType[];
 
   constructor() {
     this.integrationConns = [];
   }
 
   find(options: {
-    fluigUserUUID: IntegrationConn['fluigUserUUID'];
-  }): IntegrationConn | undefined;
+    fluigUserUUID: IntegrationConnType['fluigUserUUID'];
+  }): IntegrationConnType | undefined;
 
   find(options: {
-    googleUserSUB: IntegrationConn['googleUserSUB'];
-  }): IntegrationConn | undefined;
+    googleUserSUB: IntegrationConnType['googleUserSUB'];
+  }): IntegrationConnType | undefined;
 
   find(options: {
-    fluigUserUUID: IntegrationConn['fluigUserUUID'];
-    googleUserSUB: IntegrationConn['googleUserSUB'];
-  }): IntegrationConn | undefined {
+    fluigUserUUID: IntegrationConnType['fluigUserUUID'];
+    googleUserSUB: IntegrationConnType['googleUserSUB'];
+  }): IntegrationConnType | undefined {
     return this.integrationConns.find(
       integrationConn =>
         integrationConn.fluigUserUUID === options.fluigUserUUID ||
@@ -34,12 +43,24 @@ export default class IntegrationRepository {
     );
   }
 
-  list(): IntegrationConn[] {
+  /**
+   * List all existing connections between modules
+   * @author Eric Ambiel
+   */
+  list(): IntegrationConnType[] {
     return this.integrationConns;
   }
 
-  insert(integrationConn: IntegrationConn): void {
-    this.integrationConns.push(integrationConn);
+  /**
+   * Insert new connection between modules
+   * @param integrationConn Informations about modules connections
+   * @author Eric Ambiel
+   */
+  insert(integrationConn: IntegrationNewConnType): void {
+    this.integrationConns.push({
+      ...integrationConn,
+      connId: randomUUID(),
+    });
   }
 
   /**
@@ -47,9 +68,10 @@ export default class IntegrationRepository {
    * @param integrationConn
    * @author Eric Ambiel
    */
-  save(integrationConn: IntegrationConn): void {
+  save(integrationConn: IntegrationNewConnType): void {
     const idx = this.integrationConns.findIndex(
       outOfDate =>
+        // outOfDate.connId === integrationConn.connId ||
         outOfDate.fluigUserUUID === integrationConn.fluigUserUUID ||
         outOfDate.googleUserSUB === integrationConn.googleUserSUB,
     );

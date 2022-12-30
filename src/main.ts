@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import dotEnvSafe from 'dotenv-safe';
+import { config } from 'dotenv-safe';
 // import routes from '@shared/infra/http/routes';
 
 import ConsoleLog from '@libs/ConsoleLog';
@@ -10,18 +10,20 @@ import googleApi from '@config/googleApi';
 import { IGoogleClientRepository } from '@modules/googleSheets/infra/local/repositories/IGoogleClientRepository';
 import GoogleClientRepository from '@modules/googleSheets/infra/local/repositories/GoogleClientRepository';
 import RegisterNewConnectionsService from '@modules/integration/services/RegisterNewConnectionsService';
+import CronSchedulerFacade from '@shared/facades/CronSchedulerFacade';
+import IntegrationController from '@modules/integration/infra/http/controller/IntegrationController';
 // import startExpressServer from './vendor/app';
 
 // Load Environments from .env
-dotEnvSafe.config({ allowEmptyValues: true });
+config({ allowEmptyValues: true });
 
 ConsoleLog.print('Starting server...', 'info', 'SERVER');
 
-async function startFluigApi() {
+async function startFluigModule() {
   await container.resolve(RegisterNewConnectionsService).execute();
 }
 
-async function startGoogleApi() {
+async function startGoogleModule() {
   const googleApiConfig = googleApi();
 
   // TODO: Leave all this to controller
@@ -69,9 +71,23 @@ async function startGoogleApi() {
   // );
 }
 
+async function startIntegrationModule() {
+  const cronScheduler = container.resolve(CronSchedulerFacade);
+  const integratorController = container.resolve(IntegrationController);
+  const connections = await integratorController.listAllConnections();
+
+  // TODO: Need to test, STOP HERE
+  connections.forEach(conn => {
+    cronScheduler.jobMaker(integratorController.sendWorkflowFluig, {
+      code: conn.connId,
+    });
+  });
+}
+
 export default async function main() {
-  await startGoogleApi();
-  await startFluigApi();
+  await startGoogleModule();
+  await startFluigModule();
+  await startIntegrationModule();
 
   // startExpressServer(routes)
   //   .then(() => {
