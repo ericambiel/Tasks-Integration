@@ -43,20 +43,18 @@ export type AuthHeaders = {
   Cookie: string;
   Authorization: string;
 };
-const fluigApiConf = fluigApi();
 
 @singleton()
 export default class FluigAPIHelper {
-  private axiosInstance = (instanceId: string) =>
-    this.axiosFacade.container.resolve<Axios>(instanceId);
+  private readonly FLUIG_API_CONF = fluigApi();
 
   constructor(
     @inject(AxiosFacade)
     private axiosFacade: AxiosFacade,
   ) {
     axiosFacade.axiosFactor({
-      baseURL: fluigApiConf.BASEURL,
-      Origin: fluigApiConf.ORIGIN,
+      baseURL: this.FLUIG_API_CONF.BASEURL,
+      Origin: this.FLUIG_API_CONF.ORIGIN,
       instanceId: 'loginInstance',
     });
   }
@@ -86,17 +84,24 @@ export default class FluigAPIHelper {
     });
 
     // Get Cookies
-    const {
-      headers: { 'set-cookie': setCookie },
-    } = await req(params);
-
+    const setCookie = await req(params).then(res => res.headers['set-cookie']);
     if (!setCookie)
-      throw ConsoleLog.print('Not possible acquire cookies from server');
+      throw ConsoleLog.print(
+        'Not possible acquire cookies from server',
+        'error',
+        'FLUIGMODULE',
+      );
 
     // Get Bearer token
-    const {
-      headers: { authorization },
-    } = await req(params, { headers: { Cookie: setCookie.toString() } });
+    const authorization = await req(params, <AxiosRequestConfig>{
+      headers: { Cookie: setCookie.toString() },
+    }).then(res => res.headers.authorization);
+    if (!authorization)
+      throw ConsoleLog.print(
+        'Not possible get “Authorization” from server',
+        'error',
+        'FLUIGMODULE',
+      );
 
     return {
       Cookie: setCookie.toString(),
@@ -122,6 +127,30 @@ export default class FluigAPIHelper {
       )
       .then(res => res.data);
   }
+
+  getManagerOMOP(
+    instanceId: string,
+    oMOP: string,
+    searchFor: NameFnEnum.OP | NameFnEnum.OM,
+  ): Promise<IManagerRes> {
+    return this.getDataSet<IManagerRes>(instanceId, oMOP, searchFor).then(
+      res => res.data,
+    );
+  }
+
+  getTechnician(
+    instanceId: string,
+    technicianCode: string,
+  ): Promise<ITechnicianRes> {
+    return this.getDataSet<ITechnicianRes>(
+      instanceId,
+      technicianCode,
+      NameFnEnum.TEC,
+    ).then(res => res.data);
+  }
+
+  private axiosInstance = (instanceId: string) =>
+    this.axiosFacade.container.resolve<Axios>(instanceId);
 
   private getDataSet<T>(
     instanceId: string,
@@ -165,26 +194,5 @@ export default class FluigAPIHelper {
       'api/public/ecm/dataset/datasets',
       requestDataDataset(oMOP, searchFor),
     );
-  }
-
-  getManagerOMOP(
-    instanceId: string,
-    oMOP: string,
-    searchFor: NameFnEnum.OP | NameFnEnum.OM,
-  ): Promise<IManagerRes> {
-    return this.getDataSet<IManagerRes>(instanceId, oMOP, searchFor).then(
-      res => res.data,
-    );
-  }
-
-  getTechnician(
-    instanceId: string,
-    technicianCode: string,
-  ): Promise<ITechnicianRes> {
-    return this.getDataSet<ITechnicianRes>(
-      instanceId,
-      technicianCode,
-      NameFnEnum.TEC,
-    ).then(res => res.data);
   }
 }

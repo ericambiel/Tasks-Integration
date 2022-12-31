@@ -26,11 +26,32 @@ export default class GoogleUserRepository
       ConsoleLog.print(
         'All users token files were loaded.',
         'info',
-        'GoogleUserRepository',
-        this.apiConfig.SILENT,
+        'GoogleUserRepo',
+        this.apiConfig.SILENT_MODE,
       );
       this.emit('loadedUsersTokenFiles');
     });
+  }
+
+  deleteBySub(sub: string): void {
+    throw new Error(`${sub} - This function not implemented eat`);
+  }
+
+  findBySub(sub: string): UserTokenInfo {
+    const userToken = this.usersTokenInfo.find(
+      userTokenInfo => userTokenInfo.user_information.sub === sub,
+    );
+    if (userToken) return userToken;
+    throw new Error(`Informed sub: ${sub} was not found`);
+  }
+
+  list(): UserTokenInfo[] {
+    return this.usersTokenInfo;
+  }
+
+  save(userInfoToken: UserTokenInfo): void {
+    this.usersTokenInfo.push(userInfoToken);
+    this.saveTokenOnDisk(userInfoToken).then();
   }
 
   /**
@@ -61,26 +82,5 @@ export default class GoogleUserRepository
           `Error saving token: "${userInfoToken.user_information.sub}" to disk: ${err}`,
         );
       });
-  }
-
-  deleteBySub(sub: string): void {
-    throw new Error(`${sub} - This function not implemented eat`);
-  }
-
-  findBySub(sub: string): UserTokenInfo {
-    const userToken = this.usersTokenInfo.find(
-      userTokenInfo => userTokenInfo.user_information.sub === sub,
-    );
-    if (userToken) return userToken;
-    throw new Error(`Informed sub: ${sub} was not found`);
-  }
-
-  list(): UserTokenInfo[] {
-    return this.usersTokenInfo;
-  }
-
-  save(userInfoToken: UserTokenInfo): void {
-    this.usersTokenInfo.push(userInfoToken);
-    this.saveTokenOnDisk(userInfoToken).then();
   }
 }

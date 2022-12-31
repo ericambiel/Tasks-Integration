@@ -27,7 +27,7 @@ export default class ExpressServer {
         'Registering API...',
         'info',
         'API',
-        this.apiConfig.SILENT,
+        this.apiConfig.SILENT_MODE,
       );
 
       this.middlewareBeforeRoutes();
@@ -38,18 +38,14 @@ export default class ExpressServer {
         'API has been registered.',
         'info',
         'API',
-        this.apiConfig.SILENT,
+        this.apiConfig.SILENT_MODE,
       );
-    } catch (err: any) {
-      ConsoleLog.print(
-        `An exception was thrown during API registration: ${
-          (<Error>err).message
-        }`,
+    } catch (err) {
+      throw ConsoleLog.print(
+        `An exception thrown during API registration: ${(<Error>err).message}`,
         'error',
         'API',
-        this.apiConfig.SILENT,
       );
-      throw err;
     }
   }
 
@@ -58,13 +54,13 @@ export default class ExpressServer {
       'Starting Middlewares for routes...',
       'debug',
       'API',
-      this.apiConfig.SILENT,
+      this.apiConfig.SILENT_MODE,
     );
 
     this.server.use(cors);
     this.server.use(express.json());
     this.server.use(express.urlencoded({ extended: false }));
-    // Normalize response for response
+    // Normalize response to response
     this.server.use(success);
   }
 
@@ -73,7 +69,7 @@ export default class ExpressServer {
       'Starting Routes...',
       'debug',
       'API',
-      this.apiConfig.SILENT,
+      this.apiConfig.SILENT_MODE,
     );
     // Initiate routes and set base URL
     this.server.use(this.apiConfig.BASE_URL, this.router);
@@ -90,7 +86,7 @@ export default class ExpressServer {
       'Starting remaining middleware...',
       'debug',
       'API',
-      this.apiConfig.SILENT,
+      this.apiConfig.SILENT_MODE,
     );
     // Route not found Handler
     this.server.use(notFound);

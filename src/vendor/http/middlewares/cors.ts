@@ -24,7 +24,7 @@ const corsOptionsDelegate = (req: Request, callback: any): void => {
         `Reflect all Origin - Request Origin: ${req.header('Origin')}`,
         'info',
         'cors',
-        apiConfig.SILENT,
+        apiConfig.SILENT_MODE,
       );
       break;
     case corsConfig.ORIGINS.indexOf(req.header('Origin') ?? '') !== -1:
@@ -39,7 +39,7 @@ const corsOptionsDelegate = (req: Request, callback: any): void => {
         `Reflect - Request Origin: ${req.header('Origin')}`,
         'info',
         'cors',
-        apiConfig.SILENT,
+        apiConfig.SILENT_MODE,
       );
       break;
     default: // disable CORS for this request
@@ -53,7 +53,7 @@ const corsOptionsDelegate = (req: Request, callback: any): void => {
         } - Request Origin: ${req.header('Origin')}`,
         'info',
         'cors',
-        apiConfig.SILENT,
+        apiConfig.SILENT_MODE,
       );
   }
   callback(null, corsOptions); // callback expects two parameters: error and options

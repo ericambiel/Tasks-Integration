@@ -6,10 +6,10 @@ import AxiosFacade from '@shared/facades/AxiosFacade';
 import fluigApi from '@config/fluigApi';
 import { AuthHeaders } from '@shared/helpers/FluigAPIHelper';
 
-const fluigApiConf = fluigApi();
-
 @injectable()
 export default class RegisterUserService {
+  private readonly FLUIG_API_CONF = fluigApi();
+
   constructor(
     @inject(FluigUserRepository)
     private repository: IFluigUserRepository,
@@ -19,8 +19,8 @@ export default class RegisterUserService {
 
   execute(user: IFluigUserModel, credentials: AuthHeaders): void {
     this.axiosFacade.axiosFactor({
-      baseURL: fluigApiConf.BASEURL,
-      Origin: fluigApiConf.ORIGIN,
+      baseURL: this.FLUIG_API_CONF.BASEURL,
+      Origin: this.FLUIG_API_CONF.ORIGIN,
       instanceId: user.userUUID,
       headers: credentials,
     });

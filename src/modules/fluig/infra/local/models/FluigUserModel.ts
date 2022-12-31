@@ -14,7 +14,7 @@ export interface IFluigUserModel {
   tenantUUID: string;
   lastUpdateDate: number;
   userTimeZone: string;
-  userInfo?: IFluigUserInfoModel;
+  userInfo: IFluigUserInfoModel;
 }
 
 @Exclude()
@@ -48,5 +48,5 @@ export class FluigUserModel implements IFluigUserModel {
   userTimeZone: string;
 
   @Expose()
-  userInfo?: FluigUserInfoModel;
+  userInfo: FluigUserInfoModel;
 }

@@ -83,7 +83,6 @@ function lazyRouterProxyMaker(
           `[lazy-router] Fail to preload ${error}`,
           'error',
           'LAZY_ROUTER',
-          apiConfig.SILENT,
         ),
       );
     }

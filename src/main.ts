@@ -12,12 +12,13 @@ import GoogleClientRepository from '@modules/googleSheets/infra/local/repositori
 import RegisterNewConnectionsService from '@modules/integration/services/RegisterNewConnectionsService';
 import CronSchedulerFacade from '@shared/facades/CronSchedulerFacade';
 import IntegrationController from '@modules/integration/infra/http/controller/IntegrationController';
+import { api } from '@configs/*';
 // import startExpressServer from './vendor/app';
 
 // Load Environments from .env
 config({ allowEmptyValues: true });
 
-ConsoleLog.print('Starting server...', 'info', 'SERVER');
+const API_CONF = api();
 
 async function startFluigModule() {
   await container.resolve(RegisterNewConnectionsService).execute();
@@ -78,13 +79,25 @@ async function startIntegrationModule() {
 
   // TODO: Need to test, STOP HERE
   connections.forEach(conn => {
-    cronScheduler.jobMaker(integratorController.sendWorkflowFluig, {
-      code: conn.connId,
-    });
+    ConsoleLog.print(
+      `Scheduling JOB to “sendWorkflowFluig”, Fluig user: ${conn.fluigUserUUID}`,
+      'info',
+      'SERVER',
+      API_CONF.SILENT_MODE,
+    );
+    // cronScheduler.jobMaker(
+    //   () => integratorController.sendWorkflowFluig(conn.googleUserSUB),
+    //   {
+    //     code: conn.connId,
+    //   },
+    // );
+    integratorController.sendWorkflowFluig(conn.googleUserSUB);
   });
 }
 
 export default async function main() {
+  ConsoleLog.print('Starting server...', 'info', 'SERVER');
+
   await startGoogleModule();
   await startFluigModule();
   await startIntegrationModule();
@@ -96,4 +109,13 @@ export default async function main() {
   //   .catch(error => {
   //     ConsoleLog.print(error.toString(), 'error', 'SERVER');
   //   });
+  ConsoleLog.print('Ended start server...', 'info', 'SERVER');
 }
+
+main().catch(err => {
+  throw ConsoleLog.print(
+    `An error occurred during Server startup: ${Error(err).message}`,
+    'error',
+    'SERVER',
+  );
+});

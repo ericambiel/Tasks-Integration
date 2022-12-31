@@ -2,15 +2,24 @@ import Buffer from 'buffer';
 import fs from 'fs';
 import { singleton } from 'tsyringe';
 import path from 'path';
+import ConsoleLog from '@libs/ConsoleLog';
+import { api } from '@configs/*';
 
 @singleton()
 export default class FilesHandlerHelper {
+  private readonly API_CONFIG = api();
+
   // TODO: Use path to verify correct S.O.
   async readFile(filePath: string): Promise<Buffer> {
     return new Promise<Buffer>((resolve, reject) => {
       fs.readFile(filePath, (err, data) => {
         if (err) reject(err);
-        console.log(`Reading file: ${filePath}`);
+        ConsoleLog.print(
+          `Reading file: ${filePath}`,
+          'info',
+          'FILEHANDLER',
+          this.API_CONFIG.SILENT_MODE,
+        );
         resolve(data);
       });
     });
@@ -21,7 +30,12 @@ export default class FilesHandlerHelper {
     return new Promise<string[]>((resolve, reject) => {
       fs.readdir(filePath, (err, files) => {
         if (err) reject(err);
-        console.log(`Reading files in: ${filePath}`);
+        ConsoleLog.print(
+          `Reading files in: ${filePath}`,
+          'info',
+          'FILEHANDLER',
+          this.API_CONFIG.SILENT_MODE,
+        );
         resolve(files);
       });
     });
@@ -32,10 +46,20 @@ export default class FilesHandlerHelper {
     return new Promise<void>((resolve, reject) => {
       fs.writeFile(filePath, data, err => {
         if (err) reject(err);
-        console.log(`File are storing to: ${filePath}`);
+        ConsoleLog.print(
+          `File are storing to: ${filePath}`,
+          'info',
+          'FILEHANDLER',
+          this.API_CONFIG.SILENT_MODE,
+        );
         resolve();
       });
     }).catch(err => {
+      ConsoleLog.print(
+        `Error in write to a file: ${err}`,
+        'error',
+        'FILEHANDLER',
+      );
       throw new Error(`Error in write to a file: ${err}`);
     });
   }

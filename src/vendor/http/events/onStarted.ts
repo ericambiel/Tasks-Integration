@@ -14,7 +14,7 @@ export default function onStarted(server: http.Server): () => void {
       `API is running on ${bind}`,
       'info',
       'SERVER',
-      apiConfig.SILENT,
+      apiConfig.SILENT_MODE,
     );
   };
 }

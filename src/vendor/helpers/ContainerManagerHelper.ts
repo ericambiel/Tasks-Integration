@@ -1,5 +1,6 @@
 import { container, DependencyContainer } from 'tsyringe';
 import cloneDeep from 'lodash.clonedeep';
+import ConsoleLog from '@libs/ConsoleLog';
 
 export default abstract class ContainerManagerHelper {
   private readonly childContainer: DependencyContainer;
@@ -28,8 +29,12 @@ export default abstract class ContainerManagerHelper {
       this.childContainer.registerInstance(registerInstanceId, newInstance);
 
       return newInstance;
-    } catch (e) {
-      throw new Error('Instance not found in container');
+    } catch (err) {
+      throw ConsoleLog.print(
+        `Instance not found in container: ${(<Error>err).message}`,
+        'error',
+        'CONTAINNERMANAGER',
+      );
     }
   }
 }

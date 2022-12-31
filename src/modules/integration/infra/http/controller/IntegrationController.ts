@@ -1,4 +1,4 @@
-import { inject } from 'tsyringe';
+import { inject, singleton } from 'tsyringe';
 import CreateTasksForWorkflowService from '@modules/fluig/services/CreateTasksForWorkflowService';
 import GetSpreadsheetService from '@modules/googleSheets/services/GetSpreadsheetService';
 import { plainToInstance } from 'class-transformer';
@@ -10,8 +10,14 @@ import GetUserConectionDetailsService from '@modules/integration/services/GetUse
 import FluigTaskModel from '@modules/fluig/infra/local/models/FluigTaskModel';
 import ListUserConectionDetailsService from '@modules/integration/services/ListUserConectionDetailsService';
 import { IntegrationConnType } from '@modules/integration/infra/local/repositories/IntegrationRepository';
+import integration from '@config/integration';
+import GetSpreadsheetDetailsService from '@modules/googleSheets/services/GetSpreadsheetDetailsService';
+import ConsoleLog from '@libs/ConsoleLog';
 
+@singleton()
 export default class IntegrationController {
+  private readonly INTEGRATION_CONFIG = integration();
+
   constructor(
     @inject(GetUserConectionDetailsService)
     private getUserConectionDetailsService: GetUserConectionDetailsService,
@@ -23,6 +29,8 @@ export default class IntegrationController {
     private getSpreadsheetService: GetSpreadsheetService,
     @inject(CreateTasksForWorkflowService)
     private createTasksForWorkflowService: CreateTasksForWorkflowService,
+    @inject(GetSpreadsheetDetailsService)
+    private getSpreadsheetDetailsService: GetSpreadsheetDetailsService,
   ) {}
 
   async sendWorkflowFluig(userSUB: string): Promise<void> {
@@ -39,16 +47,29 @@ export default class IntegrationController {
       fluigUserUUID: userUUID,
     } = userConnection;
 
+    const [{ id: spreadsheetId }] =
+      await this.getSpreadsheetDetailsService.execute(
+        clientId,
+        this.INTEGRATION_CONFIG.TASK_SPREADSHEET,
+      );
+
+    if (!spreadsheetId)
+      throw ConsoleLog.print(
+        `Can't find spreadsheet from Google User: ${userSUB}`,
+        'error',
+        'SERVER',
+      );
+
     const user = await this.getFluigUserService.execute(userUUID);
 
     const sheetTasksPlain = await this.getSpreadsheetService.execute(clientId, {
-      spreadsheetId: '1uYLY1xtGQRqPeaUMzzmuVM5vb_fYP8qwDjiS1rb0EjE',
-      range: 'Horas!A2:!H',
+      spreadsheetId,
+      range: 'Horas!A2:H',
     });
 
     const sheetFluigUser = await this.getSpreadsheetService.execute(clientId, {
-      spreadsheetId: '1uYLY1xtGQRqPeaUMzzmuVM5vb_fYP8qwDjiS1rb0EjE',
-      range: 'Configurações!F2:!H3',
+      spreadsheetId,
+      range: 'Configurações!F2:H3',
     });
 
     const sheetTasks = plainToInstance(
@@ -56,7 +77,10 @@ export default class IntegrationController {
       sheetTasksPlain.sheetValues,
     );
     const fluigTasks = plainToInstance(FluigTaskModel, sheetTasks);
-    const fluigUser = plainToInstance(SheetFluigUser, sheetFluigUser);
+    const fluigUser = plainToInstance(
+      SheetFluigUser,
+      sheetFluigUser.sheetValues[0],
+    );
 
     const tasksFormData = await this.createTasksForWorkflowService.execute(
       user,

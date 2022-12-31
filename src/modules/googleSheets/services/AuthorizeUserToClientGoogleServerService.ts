@@ -55,7 +55,7 @@ export default class AuthorizeUserToClientGoogleServerService {
       await oAuth2Client.refreshAccessToken(); // After refresh, set too.
     } catch (err) {
       ConsoleLog.print(
-        `Re-authentication is needed, same thing wrong with Client credentials: ${err}`,
+        `Re-authentication needed, same thing wrong with Client credentials: ${err}`,
         'error',
         'GOOGLECLIENTAUTH',
       );

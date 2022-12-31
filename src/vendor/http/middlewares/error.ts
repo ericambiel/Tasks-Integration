@@ -43,7 +43,7 @@ export default function error(
     status = 500;
     appResponse.setSuccess(false);
     appResponse.setErrors([{ [err.name]: err.message }]);
-    ConsoleLog.print(err.toString(), 'error', 'ERROR', apiConfig.SILENT);
+    ConsoleLog.print(err.toString(), 'error', 'ERROR', apiConfig.SILENT_MODE);
   }
 
   // const result = appResponse.getProps();

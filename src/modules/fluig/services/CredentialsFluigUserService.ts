@@ -2,6 +2,7 @@ import { inject, injectable } from 'tsyringe';
 import { IFluigUserModel } from '@modules/fluig/infra/local/models/FluigUserModel';
 import { extractPayloadFromJWT } from '@shared/helpers/smallHelper';
 import FluigAPIHelper, { AuthHeaders } from '@shared/helpers/FluigAPIHelper';
+import ConsoleLog from '@libs/ConsoleLog';
 
 export type JWTPayloadFluig = IFluigUserModel & {
   exp: number;
@@ -28,15 +29,17 @@ export default class CredentialsFluigUserService {
         password,
       );
 
+      const jWTPayload = extractPayloadFromJWT<JWTPayloadFluig>(
+        headers.Authorization,
+      );
+
       // TODO: use celebrate to check received payload attributes
       return {
-        jWTPayload: extractPayloadFromJWT<JWTPayloadFluig>(
-          headers.Authorization,
-        ),
+        jWTPayload,
         headers,
       };
-    } catch (e) {
-      throw new Error(`${e}`);
+    } catch (err) {
+      throw ConsoleLog.print(<Error>err, 'error', 'FLUIGMODULE');
     }
   }
 }

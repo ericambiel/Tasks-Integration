@@ -1,5 +1,4 @@
 import ConsoleLog from '@libs/ConsoleLog';
-import { api } from '@configs/*';
 
 /**
  * Set up an error listener and return it.
@@ -9,7 +8,6 @@ import { api } from '@configs/*';
  */
 export default function onError(port: string | number): (error: Error) => void {
   return (error: any) => {
-    const apiConfig = api();
     const bind = typeof port === 'string' ? `Pipe ${port}` : `Port ${port}`;
 
     // handle specific listen errors with friendly messages
@@ -19,17 +17,11 @@ export default function onError(port: string | number): (error: Error) => void {
           `${bind} requires elevation of privileges!`,
           'error',
           'SERVER',
-          apiConfig.SILENT,
         );
         process.exit(1);
         break;
       case 'EADDRINUSE':
-        ConsoleLog.print(
-          `${bind} already in use!`,
-          'error',
-          'SERVER',
-          apiConfig.SILENT,
-        );
+        ConsoleLog.print(`${bind} already in use!`, 'error', 'SERVER');
         process.exit(1);
         break;
       default:

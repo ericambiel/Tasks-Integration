@@ -52,6 +52,9 @@ export default class RegisterNewConnectionsService {
     private updateFluigUserWithDetails: UpdateFluigUserWithDetailsService,
   ) {}
 
+  /**
+   * Records user connections between Fluig and modules.
+   */
   async execute() {
     const googleUsers = this.googleUserRepository
       .list()
@@ -64,25 +67,32 @@ export default class RegisterNewConnectionsService {
       },
     ] = this.googleClientRepository.list();
 
-    googleUsers.map(async googleUser => {
-      const fluigUserCredentials =
-        await this.getFluigUserCredentialsFromGoogleSheet(googleUser, clientId);
+    return Promise.all(
+      googleUsers.map(async googleUser => {
+        const fluigUserCredentials =
+          await this.getFluigUserCredentialsFromGoogleSheet(
+            googleUser,
+            clientId,
+          );
 
-      const fluigUser = await this.authenticateFluigUser(fluigUserCredentials);
+        const fluigUser = await this.authenticateFluigUser(
+          fluigUserCredentials,
+        );
 
-      await this.updateFluigUserWithDetails.execute(
-        fluigUser.userUUID,
-        fluigUser.sub,
-      );
+        await this.updateFluigUserWithDetails.execute(
+          fluigUser.userUUID,
+          fluigUser.sub,
+        );
 
-      this.registerModulesConnection({
-        fluigConn: { fluigUserUUID: fluigUser.userUUID },
-        googleConn: {
-          googleUserSUB: googleUser.sub,
-          googleClientId: [clientId],
-        },
-      });
-    });
+        this.registerModulesConnection({
+          fluigConn: { fluigUserUUID: fluigUser.userUUID },
+          googleConn: {
+            googleUserSUB: googleUser.sub,
+            googleClientId: [clientId],
+          },
+        });
+      }),
+    );
   }
 
   private async getFluigUserCredentialsFromGoogleSheet(
@@ -95,14 +105,15 @@ export default class RegisterNewConnectionsService {
       clientId,
     });
 
-    const [{ id }] = await this.getSpreadsheetDetailsService.execute(
-      clientId,
-      this.INTEGRATION_CONFIG.TASK_SPREADSHEET,
-    );
+    const [{ id: spreadsheetId }] =
+      await this.getSpreadsheetDetailsService.execute(
+        clientId,
+        this.INTEGRATION_CONFIG.TASK_SPREADSHEET,
+      );
 
-    if (!id)
+    if (!spreadsheetId)
       throw ConsoleLog.print(
-        `Can't get spreadsheet from Google User: ${userInformation.sub}`,
+        `Can't find spreadsheet from Google User: ${userInformation.sub}`,
         'error',
         'SERVER',
       );
@@ -111,12 +122,12 @@ export default class RegisterNewConnectionsService {
     const { sheetValues, metadata } = await this.getSpreadSheetService.execute<
       Record<string, string | null>
     >(clientId, {
-      spreadsheetId: id,
-      range: 'Configurações!F2:!H3',
+      spreadsheetId,
+      range: 'Configurações!F2:H3',
     });
 
     const fluigUser = plainToInstance(SheetFluigUser, {
-      ...[sheetValues], // ...sheetValues[0]
+      ...sheetValues[0], // ...sheetValues[0]
       metadata,
     });
 

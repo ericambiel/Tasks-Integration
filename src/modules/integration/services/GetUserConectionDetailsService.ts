@@ -1,8 +1,9 @@
-import { inject } from 'tsyringe';
+import { inject, singleton } from 'tsyringe';
 import IntegrationRepository, {
   IntegrationConnType,
 } from '@modules/integration/infra/local/repositories/IntegrationRepository';
 
+@singleton()
 export default class GetUserConectionDetailsService {
   constructor(
     @inject(IntegrationRepository)

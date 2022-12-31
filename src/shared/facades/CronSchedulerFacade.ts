@@ -18,13 +18,52 @@ const apiConfig = api();
 export default class CronSchedulerFacade implements ICronSchedulerFacade {
   private readonly scheduledJobs: IScheduleJob[] = [];
 
-  private readonly foundScheduledJob = (options: IDefaults[]) =>
-    this.scheduledJobs.filter(scheduledJob =>
-      options.find(option => {
-        if (option.code) return option.code === scheduledJob.code;
-        return option.description === scheduledJob.description;
-      }),
+  /**
+   * @description By default, the Jobs will be performed at every minute.
+   * @param jobFunc A function passed as a Cron Job
+   * @param options If an object of type IScheduleOptions  is not used the standard cron format " * * * * * " for schedules
+   * */
+  private static jobFactory(
+    jobFunc: (...args: never[]) => unknown,
+    /** @default * * * * * */
+    options?: IScheduleOptions | IScheduleOptions2,
+  ): IScheduleJob {
+    let validatedOptions = '* * * * *';
+
+    if (typeof options !== 'undefined') {
+      if ('minute' in options)
+        validatedOptions = [
+          options?.minute ?? '*',
+          options?.hour ?? '*',
+          options?.dayOfMonth ?? '*',
+          options?.month ?? '*',
+          options?.dayOfWeek ?? '*',
+        ].join(' ');
+      else if ('cronTime' in options && options.cronTime)
+        validatedOptions = options.cronTime;
+    }
+
+    const message =
+      validatedOptions === '* * * * *'
+        ? 'This Job routine is schedule at every minute as default!'
+        : `This Job routine is schedule as ${JSON.stringify(options)}`;
+
+    ConsoleLog.print(message, 'info', 'cron', apiConfig.SILENT_MODE);
+
+    const job = new CronJob(
+      validatedOptions,
+      jobFunc,
+      null,
+      true,
+      'Brazil/West',
     );
+
+    return {
+      code: options?.code ?? randomUUID(),
+      description: options?.description,
+      job,
+    };
+  }
 
   /**
    * Make a new Job and scheduling it.
@@ -46,19 +85,6 @@ export default class CronSchedulerFacade implements ICronSchedulerFacade {
     newJob.job.start();
 
     this.scheduledJobs.push(newJob);
-  }
-
-  private validateCode({ code }: IDefaults): string | undefined {
-    if (this.foundScheduledJob([{ code }]).length > 0)
-      // TODO: Make sure if it is correct, if it to be called directly will presents error on console "Header not set"
-      //  from Express
-      throw new AppError([
-        {
-          message:
-            'This code already exists, enter another one or do not fill it.',
-        },
-      ]);
-    return code;
   }
 
   /**
@@ -96,50 +122,24 @@ export default class CronSchedulerFacade implements ICronSchedulerFacade {
     return this.getScheduledJobsDetails(options);
   }
 
-  /**
-   * @description By default, the Jobs will be performed at every minute.
-   * @param jobFunc A function passed as a Cron Job
-   * @param options If an object of type IScheduleOptions  is not used the standard cron format " * * * * * " for schedules
-   * */
-  private static jobFactory(
-    jobFunc: (...args: never[]) => unknown,
-    /** @default * * * * * */
-    options?: IScheduleOptions | IScheduleOptions2,
-  ): IScheduleJob {
-    let validatedOptions = '* * * * *';
-
-    if (typeof options !== 'undefined') {
-      if ('minute' in options)
-        validatedOptions = [
-          options?.minute ?? '*',
-          options?.hour ?? '*',
-          options?.dayOfMonth ?? '*',
-          options?.month ?? '*',
-          options?.dayOfWeek ?? '*',
-        ].join(' ');
-      else if ('cronTime' in options && options.cronTime)
-        validatedOptions = options.cronTime;
-    }
-
-    const message =
-      validatedOptions === '* * * * *'
-        ? 'This Job routine is schedule at every minute as default!'
-        : `This Job routine is schedule as ${JSON.stringify(options)}`;
-
-    ConsoleLog.print(message, 'info', 'cron', apiConfig.SILENT);
-
-    const job = new CronJob(
-      validatedOptions,
-      jobFunc,
-      null,
-      true,
-      'Brazil/West',
+  private readonly foundScheduledJob = (options: IDefaults[]) =>
+    this.scheduledJobs.filter(scheduledJob =>
+      options.find(option => {
+        if (option.code) return option.code === scheduledJob.code;
+        return option.description === scheduledJob.description;
+      }),
     );
 
-    return {
-      code: options?.code ?? randomUUID(),
-      description: options?.description,
-      job,
-    };
+  private validateCode({ code }: IDefaults): string | undefined {
+    if (this.foundScheduledJob([{ code }]).length > 0)
+      // TODO: Make sure if it is correct, if it to be called directly will presents error on console "Header not set"
+      //  from Express
+      throw new AppError([
+        {
+          message:
+            'This code already exists, enter another one or do not fill it.',
+        },
+      ]);
+    return code;
   }
 }
