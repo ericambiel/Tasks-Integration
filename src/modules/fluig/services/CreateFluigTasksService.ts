@@ -10,7 +10,7 @@ import { anyObjToFormProperties } from '@modules/fluig/helpers/formTaskHelper';
 import { groupByPredicate } from '@shared/helpers/smallHelper';
 
 @injectable()
-export default class CreateFluigTasks {
+export default class CreateFluigTasksService {
   constructor(
     @inject(FluigAPIHelper)
     private fluigAPIHelper: FluigAPIHelper,

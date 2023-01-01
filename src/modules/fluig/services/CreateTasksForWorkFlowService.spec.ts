@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 
 import { container } from 'tsyringe';
-import CreateFluigTasks from '@modules/fluig/services/CreateFluigTasks';
+import CreateFluigTasksService from '@modules/fluig/services/CreateFluigTasksService';
 import { authorizeUserAxiosFluigTester } from '@shared/__test__/helper.test';
 import { Axios } from 'axios';
 import { taskMock } from '@modules/fluig/mocks/task.mock';
@@ -9,13 +9,13 @@ import FluigUserRepository from '@modules/fluig/infra/local/repositories/FluigUs
 import { taskFormDataSchema } from '@modules/fluig/mocks/taskFormData.mock';
 
 describe('Unit test - CreateTasksForWorkflowService', () => {
-  let service: CreateFluigTasks;
+  let service: CreateFluigTasksService;
   let repository: FluigUserRepository;
 
   beforeAll(async () => {
     const axios = await authorizeUserAxiosFluigTester();
     container.registerInstance(Axios, axios);
-    service = container.resolve(CreateFluigTasks);
+    service = container.resolve(CreateFluigTasksService);
     repository = container.resolve(FluigUserRepository);
   });
 

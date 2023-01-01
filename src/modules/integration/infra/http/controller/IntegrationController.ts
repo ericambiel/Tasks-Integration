@@ -1,5 +1,5 @@
 import { inject, singleton } from 'tsyringe';
-import CreateFluigTasks from '@modules/fluig/services/CreateFluigTasks';
+import CreateFluigTasksService from '@modules/fluig/services/CreateFluigTasksService';
 import GetWorksheetService from '@modules/googleSheets/services/GetWorksheetService';
 import { plainToInstance } from 'class-transformer';
 import SheetTaskModel from '@modules/integration/infra/local/models/SheetTaskModel';
@@ -13,6 +13,7 @@ import { IntegrationConnType } from '@modules/integration/infra/local/repositori
 import integration from '@config/integration';
 import GetWorksheetDetailsService from '@modules/googleSheets/services/GetWorksheetDetailsService';
 import ConsoleLog from '@libs/ConsoleLog';
+import CreateFluigWorkflowService from '@modules/fluig/services/CreateFluigWorkflowService';
 
 @singleton()
 export default class IntegrationController {
@@ -27,8 +28,10 @@ export default class IntegrationController {
     private getFluigUserService: GetFluigUserService,
     @inject(GetWorksheetService)
     private getWorksheetService: GetWorksheetService,
-    @inject(CreateFluigTasks)
-    private createFluigTasks: CreateFluigTasks,
+    @inject(CreateFluigTasksService)
+    private createFluigTasksService: CreateFluigTasksService,
+    @inject(CreateFluigWorkflowService)
+    private createFluigWorkflowService: CreateFluigWorkflowService,
     @inject(GetWorksheetDetailsService)
     private getWorksheetDetailsService: GetWorksheetDetailsService,
   ) {}
@@ -82,40 +85,19 @@ export default class IntegrationController {
       sheetFluigUser.sheetValues[0],
     );
 
-    const tasksFormData = await this.createFluigTasks.execute(
+    const tasksFormData = await this.createFluigTasksService.execute(
       user,
       fluigUser.employeeReg,
       fluigTasks,
       'Apontamento de horas em Projetos/Atendimentos',
     );
 
-    // TODO: Leave this to service Fluig createFluigWorkflow
-    const workflowTask: WorkflowTaskDTO[] = tasksFormData.map(taskFormData => {
-      return {
-        processInstanceId: 0,
-        processId: '047',
-        version: 5,
-        taskUserId: 'taskUserIdtaskUserIdtaskUserIdtaskUserIdtaskUserId',
-        completeTask: true,
-        currentMovto: 0,
-        managerMode: false,
-        selectedDestinyAfterAutomatic: -1,
-        conditionAfterAutomatic: -1,
-        selectedColleague: [],
-        comments: '',
-        newObservations: [],
-        appointments: [],
-        attachments: [],
-        digitalSignature: false,
-        formData: taskFormData,
-        isDigitalSigned: false,
-        versionDoc: 0,
-        selectedState: 12,
-        internalFields: [],
-        transferTaskAfterSelection: false,
-        currentState: 1,
-      };
-    });
+    // STOP HERE
+    const workflowTask: WorkflowTaskDTO[] =
+      this.createFluigWorkflowService.execute(
+        tasksFormData,
+        'GET FROM JWT FLUIG TOKEN',
+      );
 
     console.log(workflowTask);
 

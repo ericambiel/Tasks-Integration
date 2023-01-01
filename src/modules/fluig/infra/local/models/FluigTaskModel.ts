@@ -62,7 +62,6 @@ export default class FluigTaskModel implements TaskDTO {
   realizadoFim: string;
 
   @Expose()
-  // TODO: calculating the wrong time
   @Transform(({ obj }) => {
     // TODO: Try to discovery how to use format string same as Fluig, to correct parse
     // TODO: Leave this to smallHelper
@@ -72,6 +71,7 @@ export default class FluigTaskModel implements TaskDTO {
     const dateTimeEnd = new Date(
       parse(obj.endDateTime, 'dd/MM/yy HH:mm', new Date()),
     );
+    // TODO: The time difference is wrong
     // Diference in milliseconds of time part
     const diffMSeconds = dateTimeEnd.getTime() - dateTimeStart.getTime();
     // 36e5 is the scientific notation for 60*60*1000
