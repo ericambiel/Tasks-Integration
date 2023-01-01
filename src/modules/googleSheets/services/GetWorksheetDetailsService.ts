@@ -6,7 +6,7 @@ import GoogleClientRepository from '@modules/googleSheets/infra/local/repositori
 import { IGoogleClientRepository } from '@modules/googleSheets/infra/local/repositories/IGoogleClientRepository';
 
 @injectable()
-export default class {
+export default class GetWorksheetDetailsService {
   constructor(
     @inject(GoogleAPIFacade)
     private googleAPI: GoogleAPIFacade,
@@ -14,12 +14,12 @@ export default class {
     private repository: IGoogleClientRepository,
   ) {}
 
-  execute(clientId: string, spreadsheetName: string) {
+  execute(clientId: string, worksheetName: string) {
     const oAuth2Client = this.repository.findById(clientId);
 
     return this.googleAPI.findFilesDrive(oAuth2Client, {
       mimeType: GDriveMINEEnum.spreadsheet,
-      name: spreadsheetName,
+      name: worksheetName,
     });
   }
 }

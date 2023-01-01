@@ -4,8 +4,8 @@ import SheetFluigUser, {
   ISheetFluigUser,
 } from '@modules/integration/infra/local/models/SheetFluigUser';
 import integration from '@config/integration';
-import GetSpreadsheetService from '@modules/googleSheets/services/GetSpreadsheetService';
-import GetSpreadsheetDetailsService from '@modules/googleSheets/services/GetSpreadsheetDetailsService';
+import GetWorksheetService from '@modules/googleSheets/services/GetWorksheetService';
+import GetWorksheetDetailsService from '@modules/googleSheets/services/GetWorksheetDetailsService';
 import AuthorizeUserToClientGoogleServerService from '@modules/googleSheets/services/AuthorizeUserToClientGoogleServerService';
 import GoogleUserRepository from '@modules/googleSheets/infra/local/repositories/GoogleUserRepository';
 import GoogleClientRepository from '@modules/googleSheets/infra/local/repositories/GoogleClientRepository';
@@ -38,12 +38,12 @@ export default class RegisterNewConnectionsService {
     private googleClientRepository: GoogleClientRepository,
     @inject(IntegrationRepository)
     private repository: IntegrationRepository,
-    @inject(GetSpreadsheetService)
-    private getSpreadSheetService: GetSpreadsheetService,
+    @inject(GetWorksheetService)
+    private getWorksheetService: GetWorksheetService,
     @inject(AuthorizeUserToClientGoogleServerService)
     private authorizeUserToClientGoogleServer: AuthorizeUserToClientGoogleServerService,
-    @inject(GetSpreadsheetDetailsService)
-    private getSpreadsheetDetailsService: GetSpreadsheetDetailsService,
+    @inject(GetWorksheetDetailsService)
+    private getWorksheetDetailsService: GetWorksheetDetailsService,
     @inject(RegisterUserService)
     private registerUserService: RegisterUserService,
     @inject(CredentialsFluigUserService)
@@ -106,28 +106,32 @@ export default class RegisterNewConnectionsService {
     });
 
     const [{ id: spreadsheetId }] =
-      await this.getSpreadsheetDetailsService.execute(
+      await this.getWorksheetDetailsService.execute(
         clientId,
-        this.INTEGRATION_CONFIG.TASK_SPREADSHEET,
+        this.INTEGRATION_CONFIG.TASK_WORKBOOK,
       );
 
     if (!spreadsheetId)
       throw ConsoleLog.print(
-        `Can't find spreadsheet from Google User: ${userInformation.sub}`,
+        `Can't find worksheet from Google User: ${userInformation.sub}`,
         'error',
         'SERVER',
       );
 
-    // Get fluig credentials from spreadsheet
-    const { sheetValues, metadata } = await this.getSpreadSheetService.execute<
-      Record<string, string | null>
-    >(clientId, {
-      spreadsheetId,
-      range: 'Configurações!F2:H3',
-    });
+    // Get fluig credentials from Worksheet
+    const {
+      sheetValues: [sheetValue],
+      metadata,
+    } = await this.getWorksheetService.execute<Record<string, string | null>>(
+      clientId,
+      {
+        spreadsheetId,
+        range: this.INTEGRATION_CONFIG.CONF_RANGE_WORKSHEET,
+      },
+    );
 
     const fluigUser = plainToInstance(SheetFluigUser, {
-      ...sheetValues[0], // ...sheetValues[0]
+      ...sheetValue, // ...sheetValues[0]
       metadata,
     });
 

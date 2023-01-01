@@ -1,4 +1,4 @@
-const spreadsheetArrayObjMock = [
+const worksheetArrayObjMock = [
   {
     Solicitação: null,
     Fluig: 'OKK',
@@ -3111,7 +3111,7 @@ const spreadsheetArrayObjMock = [
 ];
 
 // TODO: Create schema and use Joy to validade exactly kinds values(Useful to be used on celebrate too)
-const spreadsheetTestSchema = {
+const worksheetTestSchema = {
   Solicitação: expect.any(String),
   Fluig: expect.any(String),
   Cliente: expect.any(String),
@@ -3122,4 +3122,4 @@ const spreadsheetTestSchema = {
   Descrição: expect.any(String),
 };
 
-export { spreadsheetArrayObjMock, spreadsheetTestSchema };
+export { worksheetArrayObjMock, worksheetTestSchema };

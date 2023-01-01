@@ -1,11 +1,11 @@
 import { inject } from 'tsyringe';
-import GetSpreadsheetService from '@modules/googleSheets/services/GetSpreadsheetService';
+import GetWorksheetService from '@modules/googleSheets/services/GetWorksheetService';
 import IntegrationRepository from '@modules/integration/infra/local/repositories/IntegrationRepository';
 
 export default class GetTaskFromGoogleSheetsService {
   constructor(
-    @inject(GetSpreadsheetService)
-    private getSpreadsheetService: GetSpreadsheetService,
+    @inject(GetWorksheetService)
+    private getWorksheetService: GetWorksheetService,
     @inject(IntegrationRepository)
     private integrationRepository: IntegrationRepository,
   ) {}

@@ -1,6 +1,6 @@
 import { inject, singleton } from 'tsyringe';
-import CreateTasksForWorkflowService from '@modules/fluig/services/CreateTasksForWorkflowService';
-import GetSpreadsheetService from '@modules/googleSheets/services/GetSpreadsheetService';
+import CreateFluigTasks from '@modules/fluig/services/CreateFluigTasks';
+import GetWorksheetService from '@modules/googleSheets/services/GetWorksheetService';
 import { plainToInstance } from 'class-transformer';
 import SheetTaskModel from '@modules/integration/infra/local/models/SheetTaskModel';
 import { WorkflowTaskDTO } from '@modules/fluig/dtos/WorkflowTaskDTO';
@@ -11,7 +11,7 @@ import FluigTaskModel from '@modules/fluig/infra/local/models/FluigTaskModel';
 import ListUserConectionDetailsService from '@modules/integration/services/ListUserConectionDetailsService';
 import { IntegrationConnType } from '@modules/integration/infra/local/repositories/IntegrationRepository';
 import integration from '@config/integration';
-import GetSpreadsheetDetailsService from '@modules/googleSheets/services/GetSpreadsheetDetailsService';
+import GetWorksheetDetailsService from '@modules/googleSheets/services/GetWorksheetDetailsService';
 import ConsoleLog from '@libs/ConsoleLog';
 
 @singleton()
@@ -25,12 +25,12 @@ export default class IntegrationController {
     private listUserConectionDetailsService: ListUserConectionDetailsService,
     @inject(GetFluigUserService)
     private getFluigUserService: GetFluigUserService,
-    @inject(GetSpreadsheetService)
-    private getSpreadsheetService: GetSpreadsheetService,
-    @inject(CreateTasksForWorkflowService)
-    private createTasksForWorkflowService: CreateTasksForWorkflowService,
-    @inject(GetSpreadsheetDetailsService)
-    private getSpreadsheetDetailsService: GetSpreadsheetDetailsService,
+    @inject(GetWorksheetService)
+    private getWorksheetService: GetWorksheetService,
+    @inject(CreateFluigTasks)
+    private createFluigTasks: CreateFluigTasks,
+    @inject(GetWorksheetDetailsService)
+    private getWorksheetDetailsService: GetWorksheetDetailsService,
   ) {}
 
   async sendWorkflowFluig(userSUB: string): Promise<void> {
@@ -48,9 +48,9 @@ export default class IntegrationController {
     } = userConnection;
 
     const [{ id: spreadsheetId }] =
-      await this.getSpreadsheetDetailsService.execute(
+      await this.getWorksheetDetailsService.execute(
         clientId,
-        this.INTEGRATION_CONFIG.TASK_SPREADSHEET,
+        this.INTEGRATION_CONFIG.TASK_WORKBOOK,
       );
 
     if (!spreadsheetId)
@@ -62,14 +62,14 @@ export default class IntegrationController {
 
     const user = await this.getFluigUserService.execute(userUUID);
 
-    const sheetTasksPlain = await this.getSpreadsheetService.execute(clientId, {
+    const sheetTasksPlain = await this.getWorksheetService.execute(clientId, {
       spreadsheetId,
-      range: 'Horas!A2:H',
+      range: this.INTEGRATION_CONFIG.TASK_RANGE_WORKSHEET,
     });
 
-    const sheetFluigUser = await this.getSpreadsheetService.execute(clientId, {
+    const sheetFluigUser = await this.getWorksheetService.execute(clientId, {
       spreadsheetId,
-      range: 'Configurações!F2:H3',
+      range: this.INTEGRATION_CONFIG.CONF_RANGE_WORKSHEET,
     });
 
     const sheetTasks = plainToInstance(
@@ -82,14 +82,14 @@ export default class IntegrationController {
       sheetFluigUser.sheetValues[0],
     );
 
-    const tasksFormData = await this.createTasksForWorkflowService.execute(
+    const tasksFormData = await this.createFluigTasks.execute(
       user,
       fluigUser.employeeReg,
       fluigTasks,
       'Apontamento de horas em Projetos/Atendimentos',
     );
 
-    // TODO: Leave this to service Fluig
+    // TODO: Leave this to service Fluig createFluigWorkflow
     const workflowTask: WorkflowTaskDTO[] = tasksFormData.map(taskFormData => {
       return {
         processInstanceId: 0,

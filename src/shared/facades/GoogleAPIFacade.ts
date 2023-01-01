@@ -48,7 +48,7 @@ export enum GDriveMINEEnum {
 }
 
 /** @author Eric Ambiel */
-type FindSpreadsheetOption = {
+type FindWorkbookOption = {
   /** MIME type file */
   mimeType: GDriveMINEEnum | string;
   /** Name of file to find in */
@@ -58,18 +58,18 @@ type FindSpreadsheetOption = {
 };
 
 /** @author Eric Ambiel */
-export type GetSpreadsheetValuesOption = {
+export type GetWorkbookValuesOption = {
   /**
-   *  Spread Sheet ID. You can get it from you google sheet URL
+   *  Can get it from you google sheet URL
    *  @example 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms
    */
-  spreadsheetId: '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms' | string;
+  spreadsheetId: string;
   /**
    *  Range of columns and rows
    *  @example
    *  'Class Data!A2:E'
    */
-  range: 'Class Data!A2:E' | string;
+  range: string;
   // /**
   //  * Array of Array values, direct from Google without treat to Array of Obj
   //  */
@@ -177,13 +177,13 @@ export default class GoogleAPIFacade extends ContainerManagerHelper {
   }
 
   /**
-   * Get values from spreadsheet:
+   * Get values from a worksheet:
    * @param oAuth2Client The authenticated Google OAuth client.
    * @param options
    */
-  getSpreadSheetArrayArray(
+  getWorksheetArrayArray(
     oAuth2Client: OAuth2Client,
-    options: GetSpreadsheetValuesOption,
+    options: GetWorkbookValuesOption,
   ) {
     const sheets = google.sheets({ version: 'v4', auth: oAuth2Client });
 
@@ -197,6 +197,7 @@ export default class GoogleAPIFacade extends ContainerManagerHelper {
         (err, res) => {
           const rows = <string[][]>res?.data.values;
 
+          // TODO: change normal error by ConsoleLog error
           if (err) reject(new Error(`The API returned an error: ${err}`));
 
           if (rows?.length)
@@ -216,22 +217,19 @@ export default class GoogleAPIFacade extends ContainerManagerHelper {
   }
 
   /**
-   * Transform arrayArray spreadsheet
+   * Transform arrayArray worksheet
    * on typed ArrayObject array
    * @param oAuth2Client
    * @param options
    */
-  async getSpreadSheetValuesArrayObj<T>(
+  async getWorksheetValuesArrayObj<T>(
     oAuth2Client: OAuth2Client,
-    options: GetSpreadsheetValuesOption,
+    options: GetWorkbookValuesOption,
   ) {
-    const spreadsheet = await this.getSpreadSheetArrayArray(
-      oAuth2Client,
-      options,
-    );
+    const worksheet = await this.getWorksheetArrayArray(oAuth2Client, options);
 
     // TODO: Verify with celebrate if given generic type is correct transformed
-    return arrayArrayToObjArrayHead<T>(spreadsheet, {
+    return arrayArrayToObjArrayHead<T>(worksheet, {
       undefinedTo: null,
     });
   }
@@ -242,7 +240,7 @@ export default class GoogleAPIFacade extends ContainerManagerHelper {
    */
   async findFilesDrive(
     oAuth2Client: OAuth2Client,
-    options?: FindSpreadsheetOption,
+    options?: FindWorkbookOption,
   ) {
     const service = google.drive({ version: 'v3', auth: oAuth2Client });
     let filter;

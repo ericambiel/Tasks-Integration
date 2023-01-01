@@ -62,6 +62,7 @@ export default class FluigTaskModel implements TaskDTO {
   realizadoFim: string;
 
   @Expose()
+  // TODO: calculating the wrong time
   @Transform(({ obj }) => {
     // TODO: Try to discovery how to use format string same as Fluig, to correct parse
     // TODO: Leave this to smallHelper

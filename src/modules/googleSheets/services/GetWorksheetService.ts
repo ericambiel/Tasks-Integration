@@ -1,6 +1,6 @@
 import { inject, injectable } from 'tsyringe';
 import GoogleAPIFacade, {
-  GetSpreadsheetValuesOption,
+  GetWorkbookValuesOption,
 } from '@shared/facades/GoogleAPIFacade';
 import GoogleClientRepository from '@modules/googleSheets/infra/local/repositories/GoogleClientRepository';
 import { IGoogleClientRepository } from '@modules/googleSheets/infra/local/repositories/IGoogleClientRepository';
@@ -11,14 +11,14 @@ import ConsoleLog from '@libs/ConsoleLog';
 
 // TODO: Leave this to FACADE API
 export interface ISheet<T> {
-  metadata: GetSpreadsheetValuesOption & {
+  metadata: GetWorkbookValuesOption & {
     userSub: JWTPayloadGoogleUserDTO['sub'];
   };
   sheetValues: T[];
 }
 
 @injectable()
-export default class GetSpreadsheetService {
+export default class GetWorksheetService {
   constructor(
     @inject(GoogleAPIFacade)
     private googleAPI: GoogleAPIFacade,
@@ -26,7 +26,7 @@ export default class GetSpreadsheetService {
     private repository: IGoogleClientRepository,
   ) {}
 
-  async execute<T>(clientId: string, options: GetSpreadsheetValuesOption) {
+  async execute<T>(clientId: string, options: GetWorkbookValuesOption) {
     const token =
       this.googleAPI.container.resolve<OAuth2Client>(clientId).credentials
         .id_token;
@@ -34,13 +34,15 @@ export default class GetSpreadsheetService {
     if (!token)
       throw ConsoleLog.print(
         "Can't get token, try set google Credentials again",
+        'error',
+        'WORKSHEETSERVICE',
       );
 
     const tokenInfo = extractPayloadFromJWT<JWTPayloadGoogleUserDTO>(token);
 
     return <ISheet<T>>{
       metadata: { ...options, userSub: tokenInfo.sub },
-      sheetValues: await this.googleAPI.getSpreadSheetValuesArrayObj(
+      sheetValues: await this.googleAPI.getWorksheetValuesArrayObj(
         this.repository.findById(clientId),
         options,
       ),

@@ -8,7 +8,7 @@ export type WorkflowTaskDTO = {
    * Working hours recording (Apontamento Horas Trabalho) — '047'
    * Travel Request (Requisição de Viagem)                — '058'
    */
-  processId: '047' | '058'; // Task Process ID is 047
+  processId: '047' | '058';
   version: 5;
   /**
    * User Id - get from JWT TOKEN

@@ -1,5 +1,5 @@
-/** Direct from Google spreadsheet, without treatment. */
-const spredshetArrayArrayMock = [
+/** Direct from Google Sheets, without treatment. */
+const worksheetArrayArrayMock = [
   [
     'Solicitação',
     'Fluig',
@@ -1650,4 +1650,4 @@ const spredshetArrayArrayMock = [
 ];
 
 // eslint-disable-next-line import/prefer-default-export
-export { spredshetArrayArrayMock };
+export { worksheetArrayArrayMock };
