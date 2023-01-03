@@ -1,17 +1,21 @@
 import { TaskFormDataDTO } from '@modules/fluig/dtos/TaskFormDataDTO';
 import { WorkflowTaskDTO } from '@modules/fluig/dtos/WorkflowTaskDTO';
+import ICreateFluigWorkflowService from '@modules/fluig/services/ICreateFluigWorkflowService';
 
-export default class CreateFluigWorkflowService {
+export default class CreateFluigWorkflowService
+  implements ICreateFluigWorkflowService
+{
   execute(
     tasksFormData: TaskFormDataDTO[],
     taskUserId: WorkflowTaskDTO['taskUserId'],
   ): WorkflowTaskDTO[] {
     return tasksFormData.map(taskFormData =>
-      this.makeWorkflowTaskObj(taskFormData, taskUserId),
+      this.workflowCreator(taskFormData, taskUserId),
     );
   }
 
-  private makeWorkflowTaskObj(
+  // TODO: Make a model for this
+  private workflowCreator(
     formData: TaskFormDataDTO,
     taskUserId: WorkflowTaskDTO['taskUserId'],
   ): WorkflowTaskDTO {

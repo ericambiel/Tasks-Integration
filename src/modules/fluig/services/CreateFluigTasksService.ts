@@ -8,9 +8,12 @@ import FluigAPIHelper, {
 } from '@shared/helpers/FluigAPIHelper';
 import { anyObjToFormProperties } from '@modules/fluig/helpers/formTaskHelper';
 import { groupByPredicate } from '@shared/helpers/smallHelper';
+import ICreateFluigTasksService from '@modules/fluig/services/ICreateFluigTasksService';
 
 @injectable()
-export default class CreateFluigTasksService {
+export default class CreateFluigTasksService
+  implements ICreateFluigTasksService
+{
   constructor(
     @inject(FluigAPIHelper)
     private fluigAPIHelper: FluigAPIHelper,

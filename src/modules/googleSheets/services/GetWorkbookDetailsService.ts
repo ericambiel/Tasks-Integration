@@ -4,9 +4,12 @@ import GoogleAPIFacade, {
 } from '@shared/facades/GoogleAPIFacade';
 import GoogleClientRepository from '@modules/googleSheets/infra/local/repositories/GoogleClientRepository';
 import { IGoogleClientRepository } from '@modules/googleSheets/infra/local/repositories/IGoogleClientRepository';
+import IGetWorkbookDetailsService from '@modules/googleSheets/services/IGetWorkbookDetailsService';
 
 @injectable()
-export default class GetWorksheetDetailsService {
+export default class GetWorkbookDetailsService
+  implements IGetWorkbookDetailsService
+{
   constructor(
     @inject(GoogleAPIFacade)
     private googleAPI: GoogleAPIFacade,

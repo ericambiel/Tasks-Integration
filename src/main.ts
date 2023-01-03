@@ -109,13 +109,10 @@ export default async function main() {
   //   .catch(error => {
   //     ConsoleLog.print(error.toString(), 'error', 'SERVER');
   //   });
-  ConsoleLog.print('Ended start server...', 'info', 'SERVER');
 }
 
-main().catch(err => {
-  throw ConsoleLog.print(
-    `An error occurred during Server startup: ${Error(err).message}`,
-    'error',
-    'SERVER',
-  );
-});
+main()
+  .then(() => ConsoleLog.print('Ended start server...', 'info', 'SERVER'))
+  .catch(err => {
+    throw ConsoleLog.print(<Error>err, 'error', 'SERVER');
+  });

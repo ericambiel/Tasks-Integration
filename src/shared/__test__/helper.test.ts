@@ -99,7 +99,7 @@ export async function authorizeUserAxiosFluigTester() {
   // List all users Registered
   const registeredUsers = repository.list();
 
-  // Get Axios instance with authorized fluig user
+  // Gtet Axios insance with authorized fluig user
   const axiosAuthorizedClient = container
     .resolve(AxiosFacade)
     .container.resolve<Axios>(registeredUsers[0].userUUID);

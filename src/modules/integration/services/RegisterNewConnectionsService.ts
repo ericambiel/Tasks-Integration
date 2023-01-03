@@ -5,7 +5,7 @@ import SheetFluigUser, {
 } from '@modules/integration/infra/local/models/SheetFluigUser';
 import integration from '@config/integration';
 import GetWorksheetService from '@modules/googleSheets/services/GetWorksheetService';
-import GetWorksheetDetailsService from '@modules/googleSheets/services/GetWorksheetDetailsService';
+import GetWorkbookDetailsService from '@modules/googleSheets/services/GetWorkbookDetailsService';
 import AuthorizeUserToClientGoogleServerService from '@modules/googleSheets/services/AuthorizeUserToClientGoogleServerService';
 import GoogleUserRepository from '@modules/googleSheets/infra/local/repositories/GoogleUserRepository';
 import GoogleClientRepository from '@modules/googleSheets/infra/local/repositories/GoogleClientRepository';
@@ -42,8 +42,8 @@ export default class RegisterNewConnectionsService {
     private getWorksheetService: GetWorksheetService,
     @inject(AuthorizeUserToClientGoogleServerService)
     private authorizeUserToClientGoogleServer: AuthorizeUserToClientGoogleServerService,
-    @inject(GetWorksheetDetailsService)
-    private getWorksheetDetailsService: GetWorksheetDetailsService,
+    @inject(GetWorkbookDetailsService)
+    private getWorksheetDetailsService: GetWorkbookDetailsService,
     @inject(RegisterUserService)
     private registerUserService: RegisterUserService,
     @inject(CredentialsFluigUserService)

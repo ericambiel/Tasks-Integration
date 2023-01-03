@@ -1,39 +1,39 @@
 import { inject, singleton } from 'tsyringe';
-import CreateFluigTasksService from '@modules/fluig/services/CreateFluigTasksService';
-import GetWorksheetService from '@modules/googleSheets/services/GetWorksheetService';
 import { plainToInstance } from 'class-transformer';
 import SheetTaskModel from '@modules/integration/infra/local/models/SheetTaskModel';
 import { WorkflowTaskDTO } from '@modules/fluig/dtos/WorkflowTaskDTO';
 import SheetFluigUser from '@modules/integration/infra/local/models/SheetFluigUser';
-import GetFluigUserService from '@modules/fluig/services/GetFluigUserService';
-import GetUserConectionDetailsService from '@modules/integration/services/GetUserConectionDetailsService';
 import FluigTaskModel from '@modules/fluig/infra/local/models/FluigTaskModel';
-import ListUserConectionDetailsService from '@modules/integration/services/ListUserConectionDetailsService';
 import { IntegrationConnType } from '@modules/integration/infra/local/repositories/IntegrationRepository';
 import integration from '@config/integration';
-import GetWorksheetDetailsService from '@modules/googleSheets/services/GetWorksheetDetailsService';
 import ConsoleLog from '@libs/ConsoleLog';
-import CreateFluigWorkflowService from '@modules/fluig/services/CreateFluigWorkflowService';
+import IGetUserConectionDetailsService from '@modules/integration/services/IGetUserConectionDetailsService';
+import IListUserConectionDetailsService from '@modules/integration/services/IListUserConectionDetailsService';
+import IGetFluigUserService from '@modules/fluig/services/IGetFluigUserService';
+import IGetWorksheetService from '@modules/googleSheets/services/IGetWorksheetService';
+import ICreateFluigTasksService from '@modules/fluig/services/ICreateFluigTasksService';
+import ICreateFluigWorkflowService from '@modules/fluig/services/ICreateFluigWorkflowService';
+import IGetWorkbookDetailsService from '@modules/googleSheets/services/IGetWorkbookDetailsService';
 
 @singleton()
 export default class IntegrationController {
   private readonly INTEGRATION_CONFIG = integration();
 
   constructor(
-    @inject(GetUserConectionDetailsService)
-    private getUserConectionDetailsService: GetUserConectionDetailsService,
-    @inject(ListUserConectionDetailsService)
-    private listUserConectionDetailsService: ListUserConectionDetailsService,
-    @inject(GetFluigUserService)
-    private getFluigUserService: GetFluigUserService,
-    @inject(GetWorksheetService)
-    private getWorksheetService: GetWorksheetService,
-    @inject(CreateFluigTasksService)
-    private createFluigTasksService: CreateFluigTasksService,
-    @inject(CreateFluigWorkflowService)
-    private createFluigWorkflowService: CreateFluigWorkflowService,
-    @inject(GetWorksheetDetailsService)
-    private getWorksheetDetailsService: GetWorksheetDetailsService,
+    @inject('GetUserConectionDetailsService')
+    private getUserConectionDetailsService: IGetUserConectionDetailsService,
+    @inject('ListUserConectionDetailsService')
+    private listUserConectionDetailsService: IListUserConectionDetailsService,
+    @inject('GetFluigUserService')
+    private getFluigUserService: IGetFluigUserService,
+    @inject('GetWorksheetService')
+    private getWorksheetService: IGetWorksheetService,
+    @inject('CreateFluigTasksService')
+    private createFluigTasksService: ICreateFluigTasksService,
+    @inject('CreateFluigWorkflowService')
+    private createFluigWorkflowService: ICreateFluigWorkflowService,
+    @inject('GetWorkbookDetailsService')
+    private getWorksheetDetailsService: IGetWorkbookDetailsService,
   ) {}
 
   async sendWorkflowFluig(userSUB: string): Promise<void> {
@@ -43,7 +43,7 @@ export default class IntegrationController {
 
     if (!userConnection) throw Error("Can't find active connections");
     if (!userConnection.googleClientId)
-      throw Error("Can't find clientId to users");
+      throw Error("Can't find clientId to user");
 
     const {
       googleClientId: [clientId],
@@ -92,7 +92,10 @@ export default class IntegrationController {
       'Apontamento de horas em Projetos/Atendimentos',
     );
 
-    // STOP HERE
+    // STOP HERE STOP HERE STOP HERE STOP HERE STOP HERE STOP HERE STOP HERE STOP HERE STOP HERE
+    // TODO: - Verify all properties given by Transformrs
+    //       - Make tests for this class
+    //       - Verify value to paramter for 'GET FROM JWT FLUIG TOKEN'
     const workflowTask: WorkflowTaskDTO[] =
       this.createFluigWorkflowService.execute(
         tasksFormData,

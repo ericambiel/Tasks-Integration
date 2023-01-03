@@ -8,17 +8,13 @@ import { OAuth2Client } from 'google-auth-library';
 import { extractPayloadFromJWT } from '@shared/helpers/smallHelper';
 import { JWTPayloadGoogleUserDTO } from '@modules/googleSheets/dtos/JWTPayloadGoogleUserDTO';
 import ConsoleLog from '@libs/ConsoleLog';
+import IGetWorksheetService, {
+  ISheet,
+} from '@modules/googleSheets/services/IGetWorksheetService';
 
 // TODO: Leave this to FACADE API
-export interface ISheet<T> {
-  metadata: GetWorkbookValuesOption & {
-    userSub: JWTPayloadGoogleUserDTO['sub'];
-  };
-  sheetValues: T[];
-}
-
 @injectable()
-export default class GetWorksheetService {
+export default class GetWorksheetService implements IGetWorksheetService {
   constructor(
     @inject(GoogleAPIFacade)
     private googleAPI: GoogleAPIFacade,

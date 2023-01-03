@@ -1,14 +1,19 @@
 import { inject, singleton } from 'tsyringe';
-import IntegrationRepository from '@modules/integration/infra/local/repositories/IntegrationRepository';
+import IntegrationRepository, {
+  IntegrationConnType,
+} from '@modules/integration/infra/local/repositories/IntegrationRepository';
+import IListUserConectionDetailsService from '@modules/integration/services/IListUserConectionDetailsService';
 
 @singleton()
-export default class ListUserConectionDetailsService {
+export default class ListUserConectionDetailsService
+  implements IListUserConectionDetailsService
+{
   constructor(
     @inject(IntegrationRepository)
     private repository: IntegrationRepository,
   ) {}
 
-  execute() {
+  execute(): IntegrationConnType[] {
     return this.repository.list();
   }
 }
