@@ -4,7 +4,6 @@ import SheetTaskModel from '@modules/integration/infra/local/models/SheetTaskMod
 import { WorkflowTaskDTO } from '@modules/fluig/dtos/WorkflowTaskDTO';
 import SheetFluigUser from '@modules/integration/infra/local/models/SheetFluigUser';
 import FluigTaskModel from '@modules/fluig/infra/local/models/FluigTaskModel';
-import { IntegrationConnType } from '@modules/integration/infra/local/repositories/IntegrationRepository';
 import integration from '@config/integration';
 import ConsoleLog from '@libs/ConsoleLog';
 import IGetUserConectionDetailsService from '@modules/integration/services/IGetUserConectionDetailsService';
@@ -14,31 +13,39 @@ import IGetWorksheetService from '@modules/googleSheets/services/IGetWorksheetSe
 import ICreateFluigTasksService from '@modules/fluig/services/ICreateFluigTasksService';
 import ICreateFluigWorkflowService from '@modules/fluig/services/ICreateFluigWorkflowService';
 import IGetWorkbookDetailsService from '@modules/googleSheets/services/IGetWorkbookDetailsService';
+import GetUserConectionDetailsService from '@modules/integration/services/GetUserConectionDetailsService';
+import ListUserConectionDetailsService from '@modules/integration/services/ListUserConectionDetailsService';
+import GetFluigUserService from '@modules/fluig/services/GetFluigUserService';
+import GetWorksheetService from '@modules/googleSheets/services/GetWorksheetService';
+import CreateFluigTasksService from '@modules/fluig/services/CreateFluigTasksService';
+import CreateFluigWorkflowService from '@modules/fluig/services/CreateFluigWorkflowService';
+import GetWorkbookDetailsService from '@modules/googleSheets/services/GetWorkbookDetailsService';
+import { IntegrationConnType } from '@modules/integration/infra/local/repositories/IIntegrationRepository';
 
 @singleton()
 export default class IntegrationController {
   private readonly INTEGRATION_CONFIG = integration();
 
   constructor(
-    @inject('GetUserConectionDetailsService')
+    @inject(GetUserConectionDetailsService)
     private getUserConectionDetailsService: IGetUserConectionDetailsService,
-    @inject('ListUserConectionDetailsService')
+    @inject(ListUserConectionDetailsService)
     private listUserConectionDetailsService: IListUserConectionDetailsService,
-    @inject('GetFluigUserService')
+    @inject(GetFluigUserService)
     private getFluigUserService: IGetFluigUserService,
-    @inject('GetWorksheetService')
+    @inject(GetWorksheetService)
     private getWorksheetService: IGetWorksheetService,
-    @inject('CreateFluigTasksService')
+    @inject(CreateFluigTasksService)
     private createFluigTasksService: ICreateFluigTasksService,
-    @inject('CreateFluigWorkflowService')
+    @inject(CreateFluigWorkflowService)
     private createFluigWorkflowService: ICreateFluigWorkflowService,
-    @inject('GetWorkbookDetailsService')
+    @inject(GetWorkbookDetailsService)
     private getWorksheetDetailsService: IGetWorkbookDetailsService,
   ) {}
 
-  async sendWorkflowFluig(userSUB: string): Promise<void> {
+  async sendWorkflowFluig(fluigUserUUID: string): Promise<void> {
     const userConnection = this.getUserConectionDetailsService.execute({
-      googleUserSUB: userSUB,
+      fluigUserUUID,
     });
 
     if (!userConnection) throw Error("Can't find active connections");
@@ -58,7 +65,7 @@ export default class IntegrationController {
 
     if (!spreadsheetId)
       throw ConsoleLog.print(
-        `Can't find spreadsheet from Google User: ${userSUB}`,
+        `Can't find spreadsheet from Google User: ${userConnection.googleUserSUB}`,
         'error',
         'SERVER',
       );

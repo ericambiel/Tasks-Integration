@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { container } from 'tsyringe';
-import { GoogleClientCredential } from '@shared/facades/GoogleAPIFacade';
+import { GoogleClientCredentialType } from '@shared/facades/GoogleAPIFacade';
 
 import { OAuth2Client } from 'google-auth-library';
 import GenerateGoogleUserTokenService from './GenerateGoogleUserTokenService';
@@ -18,7 +18,7 @@ describe('Unit test - GenerateGoogleUserTokenService.spec.ts', () => {
       client_secret: clientSecret,
       redirect_uris: [redirectUri],
     },
-  } = <GoogleClientCredential>clientCredential;
+  } = <GoogleClientCredentialType>clientCredential;
 
   let generateGoogleUserTokenService: GenerateGoogleUserTokenService;
 

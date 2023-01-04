@@ -3,18 +3,21 @@ import {
   FluigUserModel,
   IFluigUserModel,
 } from '@modules/fluig/infra/local/models/FluigUserModel';
-import { singleton } from 'tsyringe';
+import { inject, singleton } from 'tsyringe';
 
 @singleton()
 export default class FluigUserRepository implements IFluigUserRepository {
   /** Array with registered Fluig users to this API */
-  private fluigUsers: IFluigUserModel[] = [];
+  // private fluigUsers: IFluigUserModel[];
+  // constructor() {
+  //   this.fluigUsers = [];
+  // }
 
-  // constructor(
-  //     /** Array with registered Fluig users to this API */
-  //     @injectAll('IFluigUserModel')
-  //     private fluigUsers: FluigUserModel[],
-  // ) {}
+  constructor(
+    /** Array with registered Fluig users to this API */
+    @inject('FluigUserModel')
+    private fluigUsers: IFluigUserModel[],
+  ) {}
 
   create(user: FluigUserModel): void {
     this.fluigUsers.push(user);

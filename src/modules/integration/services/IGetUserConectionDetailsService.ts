@@ -1,4 +1,4 @@
-import { IntegrationConnType } from '@modules/integration/infra/local/repositories/IntegrationRepository';
+import { IntegrationConnType } from '@modules/integration/infra/local/repositories/IIntegrationRepository';
 
 export default interface IGetUserConectionDetailsService {
   execute(options: {

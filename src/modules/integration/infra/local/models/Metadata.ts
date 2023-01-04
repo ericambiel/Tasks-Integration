@@ -1,5 +1,5 @@
 import { Expose } from 'class-transformer';
-import { ISheet } from '@modules/googleSheets/services/GetWorksheetService';
+import { ISheet } from '@modules/googleSheets/services/IGetWorksheetService';
 
 export interface IMetadata {
   metadata: ISheet<never>['metadata'];

@@ -4,11 +4,11 @@ import { inject, singleton } from 'tsyringe';
 import FilesHandlerHelper from '@shared/helpers/FilesHandlerHelper';
 import { GenerateAuthUrlOpts } from 'google-auth-library/build/src/auth/oauth2client';
 import { arrayArrayToObjArrayHead } from '@shared/helpers/smallHelper';
-import { UserTokenInfo } from '@modules/googleSheets/infra/local/repositories/IGoogleUserRepository';
+import { UserTokenInfoType } from '@modules/googleSheets/infra/local/repositories/IGoogleUserRepository';
 import ContainerManagerHelper from '@helpers/ContainerManagerHelper';
 
 /** @author Eric Ambiel */
-export type GoogleClientCredential = {
+export type GoogleClientCredentialType = {
   web: {
     client_id: string;
     project_id: string;
@@ -108,7 +108,9 @@ export default class GoogleAPIFacade extends ContainerManagerHelper {
    * @param serviceCredentials The authorization client credentials.
    * @author Eric Ambiel
    */
-  oAuth2ClientFactor(serviceCredentials: GoogleClientCredential): OAuth2Client {
+  oAuth2ClientFactor(
+    serviceCredentials: GoogleClientCredentialType,
+  ): OAuth2Client {
     const {
       client_secret: clientSecret,
       client_id: clientId,
@@ -172,7 +174,7 @@ export default class GoogleAPIFacade extends ContainerManagerHelper {
   getTokenInformation(
     oAuth2Client: OAuth2Client,
     accessToken: string,
-  ): Promise<UserTokenInfo['user_information']> {
+  ): Promise<UserTokenInfoType['user_information']> {
     return oAuth2Client.getTokenInfo(accessToken).then();
   }
 

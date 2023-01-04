@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { container } from 'tsyringe';
-import { GoogleClientCredential } from '@shared/facades/GoogleAPIFacade';
+import { GoogleClientCredentialType } from '@shared/facades/GoogleAPIFacade';
 
 import { Credentials } from 'google-auth-library';
 import { sleep } from '@shared/helpers/smallHelper';
@@ -16,7 +16,7 @@ describe('Unit test - AuthorizeGoogleUserService.ts', () => {
     /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.\S{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.\S{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.\S{2,}|www\.[a-zA-Z0-9]+\.\S{2,})/gi;
   // const regex = new RegExp(expression);
 
-  let clientsCredential: GoogleClientCredential[];
+  let clientsCredential: GoogleClientCredentialType[];
   let usersToken: Credentials[];
 
   let repositoryClient: IGoogleClientRepository;

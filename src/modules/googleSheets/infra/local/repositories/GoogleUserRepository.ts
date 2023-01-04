@@ -3,7 +3,10 @@ import FilesHandlerHelper from '@shared/helpers/FilesHandlerHelper';
 import ConsoleLog from '@libs/ConsoleLog';
 import { api } from '@configs/*';
 import { EventEmitter } from 'events';
-import { IGoogleUserRepository, UserTokenInfo } from './IGoogleUserRepository';
+import {
+  IGoogleUserRepository,
+  UserTokenInfoType,
+} from './IGoogleUserRepository';
 
 /** @author Eric Ambiel */
 @singleton<IGoogleUserRepository>()
@@ -11,11 +14,13 @@ export default class GoogleUserRepository
   extends EventEmitter
   implements IGoogleUserRepository
 {
-  private readonly apiConfig = api();
+  private readonly API_CONFIG = api();
 
-  private usersTokenInfo: UserTokenInfo[];
+  // private usersTokenInfo: UserTokenInfo[];
 
   constructor(
+    @inject('UserTokenInfoType')
+    private usersTokenInfo: UserTokenInfoType[],
     @inject('tokensPath')
     private tokensPath: string,
     @inject(FilesHandlerHelper)
@@ -27,7 +32,7 @@ export default class GoogleUserRepository
         'All users token files were loaded.',
         'info',
         'GoogleUserRepo',
-        this.apiConfig.SILENT_MODE,
+        this.API_CONFIG.SILENT_MODE,
       );
       this.emit('loadedUsersTokenFiles');
     });
@@ -37,7 +42,7 @@ export default class GoogleUserRepository
     throw new Error(`${sub} - This function not implemented eat`);
   }
 
-  findBySub(sub: string): UserTokenInfo {
+  findBySub(sub: string): UserTokenInfoType {
     const userToken = this.usersTokenInfo.find(
       userTokenInfo => userTokenInfo.user_information.sub === sub,
     );
@@ -45,11 +50,11 @@ export default class GoogleUserRepository
     throw new Error(`Informed sub: ${sub} was not found`);
   }
 
-  list(): UserTokenInfo[] {
+  list(): UserTokenInfoType[] {
     return this.usersTokenInfo;
   }
 
-  save(userInfoToken: UserTokenInfo): void {
+  save(userInfoToken: UserTokenInfoType): void {
     this.usersTokenInfo.push(userInfoToken);
     this.saveTokenOnDisk(userInfoToken).then();
   }
@@ -71,7 +76,7 @@ export default class GoogleUserRepository
    * Store the token to disk for later program executions
    * @author Eric Ambiel
    */
-  private async saveTokenOnDisk(userInfoToken: UserTokenInfo) {
+  private async saveTokenOnDisk(userInfoToken: UserTokenInfoType) {
     return this.fileHandler
       .writeFile(
         `${this.tokensPath}/${userInfoToken.user_information.sub}.token.json`,

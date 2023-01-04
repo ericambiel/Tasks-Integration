@@ -1,13 +1,15 @@
 import { OAuth2Client } from 'google-auth-library';
-import { GoogleClientCredential } from '@shared/facades/GoogleAPIFacade';
+import { GoogleClientCredentialType } from '@shared/facades/GoogleAPIFacade';
 import { EventEmitter } from 'events';
 
 export interface IGoogleClientRepository extends EventEmitter {
-  list(): GoogleClientCredential[];
+  list(): GoogleClientCredentialType[];
 
-  findById(clientId: GoogleClientCredential['web']['client_id']): OAuth2Client;
+  findById(
+    clientId: GoogleClientCredentialType['web']['client_id'],
+  ): OAuth2Client;
 
-  create(client: GoogleClientCredential): void;
+  create(client: GoogleClientCredentialType): void;
 
-  delete(clientId: GoogleClientCredential['web']['client_id']): void;
+  delete(clientId: GoogleClientCredentialType['web']['client_id']): void;
 }

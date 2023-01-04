@@ -3,14 +3,14 @@ import GoogleUserInformationModel from '@modules/googleSheets/infra/local/models
 import { EventEmitter } from 'events';
 
 /** @author Eric Ambiel */
-export type UserTokenInfo = Credentials & {
+export type UserTokenInfoType = Credentials & {
   user_information: GoogleUserInformationModel;
 };
 
 /** @author Eric Ambiel */
 export interface IGoogleUserRepository extends EventEmitter {
   /** @author Eric Ambiel */
-  list(): UserTokenInfo[];
+  list(): UserTokenInfoType[];
 
   /**
    * Find by SUB
@@ -20,10 +20,10 @@ export interface IGoogleUserRepository extends EventEmitter {
    * application as the unique-identifier key for the user.
    * @author Eric Ambiel
    */
-  findBySub(sub: string): UserTokenInfo;
+  findBySub(sub: string): UserTokenInfoType;
 
   /** @author Eric Ambiel */
-  save(userTokenInfo: UserTokenInfo): void;
+  save(userTokenInfo: UserTokenInfoType): void;
 
   /**
    * Delete by SUB

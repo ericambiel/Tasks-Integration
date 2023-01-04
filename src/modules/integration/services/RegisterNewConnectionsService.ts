@@ -16,14 +16,14 @@ import CredentialsFluigUserService from '@modules/fluig/services/CredentialsFlui
 import { FluigUserModel } from '@modules/fluig/infra/local/models/FluigUserModel';
 import GoogleUserInformationModel from '@modules/googleSheets/infra/local/models/GoogleUserInformationModel';
 import UpdateFluigUserWithDetailsService from '@modules/fluig/services/UpdateFluigUserWithDetailsService';
-import { GoogleClientCredential } from '@shared/facades/GoogleAPIFacade';
+import { GoogleClientCredentialType } from '@shared/facades/GoogleAPIFacade';
 
 // TODO: Leave all this in Integration Controller
 
 type RegisterModulesConnectionOptions = {
   googleConn: {
     googleUserSUB: GoogleUserInformationModel['sub'];
-    googleClientId: GoogleClientCredential['web']['client_id'][];
+    googleClientId: GoogleClientCredentialType['web']['client_id'][];
   };
   fluigConn: { fluigUserUUID: FluigUserModel['userUUID'] };
 };

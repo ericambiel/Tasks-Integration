@@ -1,5 +1,5 @@
 import GoogleAPIFacade, {
-  GoogleClientCredential,
+  GoogleClientCredentialType,
 } from '@shared/facades/GoogleAPIFacade';
 import { OAuth2Client } from 'google-auth-library';
 import { inject, singleton } from 'tsyringe';
@@ -8,21 +8,15 @@ import { EventEmitter } from 'events';
 import ConsoleLog from '@libs/ConsoleLog';
 import { IGoogleClientRepository } from './IGoogleClientRepository';
 
-// // TODO: create a class to put all events there, call this class in begin of initialization server
-// const eventEmitter = new EventEmitter();
-//
-// eventEmitter.on('loadedClientsCredentialFile', () =>
-//   console.log('All clients credential files was loaded.'),
-// );
-
 @singleton()
 export default class GoogleClientRepository
   extends EventEmitter
   implements IGoogleClientRepository
 {
-  private clientsCredential: GoogleClientCredential[];
+  // private clientsCredential: GoogleClientCredential[];
 
   constructor(
+    private clientsCredential: GoogleClientCredentialType[],
     /** Path to credential clients file */
     @inject('clientCredentialFilePath')
     private clientCredentialFilePath: string,
@@ -32,14 +26,15 @@ export default class GoogleClientRepository
     private googleAPI: GoogleAPIFacade,
   ) {
     super();
+    this.clientsCredential = [];
     this.loadClientsCredentialFile(clientCredentialFilePath).then(() => {
       // Register all loaded clients.
-      // P.S.: Clients are registered by theirs "client_id" credential
+      // P.S.: Clients registered by theirs “client_id” credential.
       this.clientsCredential.forEach(clientCredential =>
         this.googleAPI.oAuth2ClientFactor(clientCredential),
       );
       ConsoleLog.print(
-        'All clients credential files were loaded.',
+        'All clients credential files loaded.',
         'info',
         'GOOGLECLIENTREPO',
       );
@@ -47,23 +42,46 @@ export default class GoogleClientRepository
     });
   }
 
+  delete(clientId: string): void {
+    throw new Error(`${clientId} - This function not implemented eat`);
+  }
+
+  // TODO: Test with instance that doesn't exists, throw error
+  findById(clientId: string): OAuth2Client {
+    if (this.googleAPI.container.isRegistered(clientId))
+      return this.googleAPI.container.resolve(clientId);
+    throw ConsoleLog.print(
+      'Informed Google Client instanceId not exists',
+      'error',
+      'GOOGLECLIENTREPO',
+    );
+  }
+
+  list(): GoogleClientCredentialType[] {
+    return this.clientsCredential;
+  }
+
+  create(client: GoogleClientCredentialType): void {
+    this.clientsCredential.push(client);
+    this.googleAPI.oAuth2ClientFactor(client);
+    this.saveClientCredentialOnDisk(client).then();
+  }
+
   /**
    * Load Google Service Credential from disk.
-   * @param clientCredentialFilePath Path to client credential file
+   * @param clientCredentialFilePath Path to client credential file.
    * @private
    */
   private async loadClientsCredentialFile(clientCredentialFilePath: string) {
-    // Load client secrets from a local file to use in service credential.
+    // Load client secrets from disk file to use in service credential.
     this.clientsCredential = await this.fileHandler
       .readJSONFilesInDir(clientCredentialFilePath)
       .then();
   }
 
-  /**
-   * Store the token to disk for later program executions
-   */
+  /**  Save the token on disk for later program executions */
   private async saveClientCredentialOnDisk(
-    clientCredential: GoogleClientCredential,
+    clientCredential: GoogleClientCredentialType,
   ) {
     return this.fileHandler
       .writeFile(
@@ -78,30 +96,5 @@ export default class GoogleClientRepository
           'GOOGLECLIENTREPO',
         );
       });
-  }
-
-  delete(clientId: string): void {
-    throw new Error(`${clientId} - This function not implemented eat`);
-  }
-
-  // TODO: Test if instance doesn't exists, throw error
-  findById(clientId: string): OAuth2Client {
-    if (this.googleAPI.container.isRegistered(clientId))
-      return this.googleAPI.container.resolve(clientId);
-    throw ConsoleLog.print(
-      'Informed Google Client instanceId not exists',
-      'error',
-      'GOOGLECLIENTREPO',
-    );
-  }
-
-  list(): GoogleClientCredential[] {
-    return this.clientsCredential;
-  }
-
-  create(client: GoogleClientCredential): void {
-    this.clientsCredential.push(client);
-    this.googleAPI.oAuth2ClientFactor(client);
-    this.saveClientCredentialOnDisk(client).then();
   }
 }

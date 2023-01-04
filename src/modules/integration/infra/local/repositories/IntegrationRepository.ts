@@ -1,28 +1,26 @@
-import { singleton } from 'tsyringe';
-import { JWTPayloadGoogleUserDTO } from '@modules/googleSheets/dtos/JWTPayloadGoogleUserDTO';
+import { inject, singleton } from 'tsyringe';
 import { randomUUID } from 'crypto';
-
-type IntegrationNewConnType = {
-  fluigUserUUID: string;
-  googleUserSUB: JWTPayloadGoogleUserDTO['sub'];
-  googleClientId: string[];
-};
-
-export type IntegrationConnType = IntegrationNewConnType & {
-  connId: string;
-};
+import IIntegrationRepository, {
+  IntegrationConnType,
+  IntegrationNewConnType,
+} from '@modules/integration/infra/local/repositories/IIntegrationRepository';
 
 /**
  * Repository for connections between modules.
  * @author: Eric Ambiel
  */
 @singleton()
-export default class IntegrationRepository {
-  private readonly integrationConns: IntegrationConnType[];
+export default class IntegrationRepository implements IIntegrationRepository {
+  // private readonly integrationConns: IntegrationConnType[];
+  // constructor() {
+  //   this.integrationConns = [];
+  // }
 
-  constructor() {
-    this.integrationConns = [];
-  }
+  constructor(
+    /** Array with registered Fluig users to this API */
+    @inject('IntegrationConnType')
+    private integrationConns: IntegrationConnType[],
+  ) {}
 
   find(options: {
     fluigUserUUID: IntegrationConnType['fluigUserUUID'];

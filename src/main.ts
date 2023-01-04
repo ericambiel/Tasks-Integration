@@ -4,7 +4,10 @@ import { config } from 'dotenv-safe';
 
 import ConsoleLog from '@libs/ConsoleLog';
 import { container } from 'tsyringe';
-import { IGoogleUserRepository } from '@modules/googleSheets/infra/local/repositories/IGoogleUserRepository';
+import {
+  IGoogleUserRepository,
+  UserTokenInfoType,
+} from '@modules/googleSheets/infra/local/repositories/IGoogleUserRepository';
 import GoogleUserRepository from '@modules/googleSheets/infra/local/repositories/GoogleUserRepository';
 import googleApi from '@config/googleApi';
 import { IGoogleClientRepository } from '@modules/googleSheets/infra/local/repositories/IGoogleClientRepository';
@@ -13,6 +16,8 @@ import RegisterNewConnectionsService from '@modules/integration/services/Registe
 import CronSchedulerFacade from '@shared/facades/CronSchedulerFacade';
 import IntegrationController from '@modules/integration/infra/http/controller/IntegrationController';
 import { api } from '@configs/*';
+import { IFluigUserModel } from '@modules/fluig/infra/local/models/FluigUserModel';
+import { IntegrationConnType } from '@modules/integration/infra/local/repositories/IIntegrationRepository';
 // import startExpressServer from './vendor/app';
 
 // Load Environments from .env
@@ -21,19 +26,31 @@ config({ allowEmptyValues: true });
 const API_CONF = api();
 
 async function startFluigModule() {
+  container.register<IntegrationConnType[]>('IntegrationConnType', {
+    useValue: [],
+  });
+
   await container.resolve(RegisterNewConnectionsService).execute();
 }
 
 async function startGoogleModule() {
-  const googleApiConfig = googleApi();
+  const GOOGLE_API_CONF = googleApi();
 
   // TODO: Leave all this to controller
   container.register<string>('clientCredentialFilePath', {
-    useValue: googleApiConfig.CLIENTS_PATH,
+    useValue: GOOGLE_API_CONF.CLIENTS_PATH,
   });
 
   container.register<string>('tokensPath', {
-    useValue: googleApiConfig.TOKENS_PATH,
+    useValue: GOOGLE_API_CONF.TOKENS_PATH,
+  });
+
+  container.register<IFluigUserModel[]>('FluigUserModel', {
+    useValue: [],
+  });
+
+  container.register<UserTokenInfoType[]>('UserTokenInfoType', {
+    useValue: [],
   });
 
   const repositoryClient = container.resolve<IGoogleClientRepository>(
@@ -49,13 +66,16 @@ async function startGoogleModule() {
     new Promise(resolve => {
       repositoryClient.once('loadedClientsCredentialFiles', () => resolve());
     }),
-  );
-
-  events.push(
     new Promise(resolve => {
       repositoryUser.once('loadedUsersTokenFiles', () => resolve());
     }),
   );
+
+  // events.push(
+  //   new Promise(resolve => {
+  //     repositoryUser.once('loadedUsersTokenFiles', () => resolve());
+  //   }),
+  // );
 
   //  Waiting for all needed events
   await Promise.all(events);
@@ -91,7 +111,7 @@ async function startIntegrationModule() {
     //     code: conn.connId,
     //   },
     // );
-    integratorController.sendWorkflowFluig(conn.googleUserSUB);
+    integratorController.sendWorkflowFluig(conn.fluigUserUUID);
   });
 }
 

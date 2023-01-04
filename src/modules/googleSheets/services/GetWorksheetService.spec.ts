@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 
 import { container } from 'tsyringe';
-import { GoogleClientCredential } from '@shared/facades/GoogleAPIFacade';
+import { GoogleClientCredentialType } from '@shared/facades/GoogleAPIFacade';
 import { OAuth2Client } from 'google-auth-library';
 import { sleep } from '@shared/helpers/smallHelper';
 import clientCredential from '../../../misc/clients/client_secret_331108598412-fmcfkud7cm6hv4qvjc21g37ormjob0qu.apps.googleusercontent.com.json';
@@ -20,7 +20,7 @@ describe('Unit teste - GetWorksheetService', () => {
       client_secret: clientSecret,
       redirect_uris: [redirectUri],
     },
-  } = <GoogleClientCredential>clientCredential;
+  } = <GoogleClientCredentialType>clientCredential;
 
   beforeAll(() => {
     const oAuth2Client = new OAuth2Client({

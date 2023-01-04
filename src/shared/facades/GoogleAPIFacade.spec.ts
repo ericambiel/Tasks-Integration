@@ -5,7 +5,7 @@ import GoogleAPIFacade, {
 } from '@shared/facades/GoogleAPIFacade';
 import { Credentials, OAuth2Client } from 'google-auth-library';
 
-import { UserTokenInfo } from '@modules/googleSheets/infra/local/repositories/IGoogleUserRepository';
+import { UserTokenInfoType } from '@modules/googleSheets/infra/local/repositories/IGoogleUserRepository';
 import GoogleUserInformationModel from '@modules/googleSheets/infra/local/models/GoogleUserInformationModel';
 import CLIENT_SECRET from '../../misc/clients/client_secret_331108598412-fmcfkud7cm6hv4qvjc21g37ormjob0qu.apps.googleusercontent.com.json';
 import userToken from '../../misc/tokens/108866897033893388302.token.json';
@@ -13,10 +13,10 @@ import userToken from '../../misc/tokens/108866897033893388302.token.json';
 describe('Unit Test - GoogleAPIFacade', () => {
   let googleServiceFacade: GoogleAPIFacade;
   let oAuth2Client: OAuth2Client;
-  let newTokenInfoUser: UserTokenInfo;
+  let newTokenInfoUser: UserTokenInfoType;
 
   // TODO: Create schema and use Joy to validade exactly type values(Useful to be used on celebrate too)
-  const userTokenInfoSchema: UserTokenInfo = {
+  const userTokenInfoSchema: UserTokenInfoType = {
     refresh_token: expect.any(String),
     scope: expect.any(String),
     token_type: 'Bearer',
@@ -56,7 +56,9 @@ describe('Unit Test - GoogleAPIFacade', () => {
       user_information: tokenInfo,
     };
 
-    expect(newTokenInfoUser).toMatchObject<UserTokenInfo>(userTokenInfoSchema);
+    expect(newTokenInfoUser).toMatchObject<UserTokenInfoType>(
+      userTokenInfoSchema,
+    );
   });
 
   it('Should be possible list specifics files by criteria', async () => {
