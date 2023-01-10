@@ -35,22 +35,22 @@ const taskMock: TaskDTO[] = [
   },
 ];
 
-// const taskTestSchema = {
-//   realizadoId: expect.any(String),
-//   realizadoNumeroOMOP: expect.any(String),
-//   realizadoCodOMOP: expect.any(String),
-//   realizadoOperacaoTarefa: '20',
-//   realizadoOperacaoTarefaNome: 'HORAS TRABALHADAS',
-//   realizadoProjeto: expect.any(String),
-//   realizadoObservacao: expect.any(String),
-//   realizadoData: expect.any(String),
-//   realizadoInicio: expect.any(String),
-//   realizadoFim: expect.any(String),
-//   realizadoHoras: expect.any(String),
-//   txtAprovacao: '',
-//   aprovadoAprovacaoCheckbox: 'on',
-//   realizadoAprovado: 'false',
-// };
+const taskTestSchema: TaskDTO = {
+  realizadoId: expect.any(String),
+  realizadoNumeroOMOP: expect.any(String),
+  realizadoCodOMOP: expect.any(String),
+  realizadoOperacaoTarefa: '20',
+  realizadoOperacaoTarefaNome: 'HORAS TRABALHADAS',
+  realizadoProjeto: expect.any(String),
+  realizadoObservacao: expect.any(String),
+  realizadoData: expect.any(String),
+  realizadoInicio: expect.any(String),
+  realizadoFim: expect.any(String),
+  realizadoHoras: expect.any(String),
+  txtAprovacao: '',
+  aprovadoAprovacaoCheckbox: 'on',
+  realizadoAprovado: 'false',
+};
 
 // eslint-disable-next-line import/prefer-default-export
-export { taskMock };
+export { taskMock, taskTestSchema };

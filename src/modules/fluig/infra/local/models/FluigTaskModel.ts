@@ -13,7 +13,8 @@ export default class FluigTaskModel implements TaskDTO {
   @Expose()
   aprovadoAprovacaoCheckbox: 'on';
 
-  @Expose({ name: 'oMOPCod' })
+  @Expose()
+  @Transform(({ obj }) => obj.oMOPCod)
   realizadoNumeroOMOP: string;
 
   @Expose({ name: 'oMOPCod' })
@@ -75,7 +76,7 @@ export default class FluigTaskModel implements TaskDTO {
     // Diference in milliseconds of time part
     const diffMSeconds = dateTimeEnd.getTime() - dateTimeStart.getTime();
     // 36e5 is the scientific notation for 60*60*1000
-    const diffHours = Math.abs(diffMSeconds) / 36e6;
+    const diffHours = Math.abs(diffMSeconds) / 36e5;
 
     // Round hours and minutes
     const hours = Math.floor(diffHours);

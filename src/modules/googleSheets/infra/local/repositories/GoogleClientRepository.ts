@@ -4,42 +4,27 @@ import GoogleAPIFacade, {
 import { OAuth2Client } from 'google-auth-library';
 import { inject, singleton } from 'tsyringe';
 import FilesHandlerHelper from '@shared/helpers/FilesHandlerHelper';
-import { EventEmitter } from 'events';
 import ConsoleLog from '@libs/ConsoleLog';
+import { api } from '@configs/*';
+import googleApi from '@config/googleApi';
 import { IGoogleClientRepository } from './IGoogleClientRepository';
 
 @singleton()
-export default class GoogleClientRepository
-  extends EventEmitter
-  implements IGoogleClientRepository
-{
-  // private clientsCredential: GoogleClientCredential[];
+// extends EventEmitter
+export default class GoogleClientRepository implements IGoogleClientRepository {
+  private readonly API_CONFIG = api();
+
+  private readonly GOOGLE_API_CONF = googleApi();
 
   constructor(
+    @inject('GoogleClientCredentialType')
     private clientsCredential: GoogleClientCredentialType[],
-    /** Path to credential clients file */
-    @inject('clientCredentialFilePath')
-    private clientCredentialFilePath: string,
     @inject(FilesHandlerHelper)
     private fileHandler: FilesHandlerHelper,
     @inject(GoogleAPIFacade)
     private googleAPI: GoogleAPIFacade,
   ) {
-    super();
-    this.clientsCredential = [];
-    this.loadClientsCredentialFile(clientCredentialFilePath).then(() => {
-      // Register all loaded clients.
-      // P.S.: Clients registered by theirs “client_id” credential.
-      this.clientsCredential.forEach(clientCredential =>
-        this.googleAPI.oAuth2ClientFactor(clientCredential),
-      );
-      ConsoleLog.print(
-        'All clients credential files loaded.',
-        'info',
-        'GOOGLECLIENTREPO',
-      );
-      this.emit('loadedClientsCredentialFiles');
-    });
+    this.createOAuth2Clients();
   }
 
   delete(clientId: string): void {
@@ -51,7 +36,7 @@ export default class GoogleClientRepository
     if (this.googleAPI.container.isRegistered(clientId))
       return this.googleAPI.container.resolve(clientId);
     throw ConsoleLog.print(
-      'Informed Google Client instanceId not exists',
+      `Informed Google Client instanceId: ${clientId}, not exists`,
       'error',
       'GOOGLECLIENTREPO',
     );
@@ -69,14 +54,33 @@ export default class GoogleClientRepository
 
   /**
    * Load Google Service Credential from disk.
-   * @param clientCredentialFilePath Path to client credential file.
    * @private
    */
-  private async loadClientsCredentialFile(clientCredentialFilePath: string) {
+  async loadCredentialsFromDisk(): Promise<void> {
     // Load client secrets from disk file to use in service credential.
-    this.clientsCredential = await this.fileHandler
-      .readJSONFilesInDir(clientCredentialFilePath)
-      .then();
+    this.clientsCredential = await this.fileHandler.readJSONFilesInDir(
+      this.GOOGLE_API_CONF.CLIENTS_PATH,
+    );
+
+    this.createOAuth2Clients();
+
+    ConsoleLog.print(
+      'All clients credential files loaded.',
+      'info',
+      'GOOGLECLIENTREPO',
+      this.API_CONFIG.SILENT_MODE,
+    );
+  }
+
+  /**
+   * Reload from array and register all loaded clients
+   * P.S.: Clients registered by theirs “client_id” credential.
+   * @private
+   */
+  private createOAuth2Clients() {
+    this.clientsCredential.forEach(clientCredential =>
+      this.googleAPI.oAuth2ClientFactor(clientCredential),
+    );
   }
 
   /**  Save the token on disk for later program executions */
@@ -86,7 +90,7 @@ export default class GoogleClientRepository
     return this.fileHandler
       .writeFile(
         // TODO: convert "clientCredential.web.client_id" a HEX before save in disc to avoid erros with wrong name
-        `${this.clientCredentialFilePath}/${clientCredential.web.client_id}.client.json`,
+        `${this.GOOGLE_API_CONF.CLIENTS_PATH}/${clientCredential.web.client_id}.client.json`,
         JSON.stringify(clientCredential),
       )
       .catch((err: Error) => {

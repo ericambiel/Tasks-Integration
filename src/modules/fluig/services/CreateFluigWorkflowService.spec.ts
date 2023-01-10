@@ -7,12 +7,17 @@ import { Axios } from 'axios';
 import { taskMock } from '@modules/fluig/mocks/task.mock';
 import FluigUserRepository from '@modules/fluig/infra/local/repositories/FluigUserRepository';
 import { taskFormDataSchema } from '@modules/fluig/mocks/taskFormData.mock';
+import { IFluigUserModel } from '@modules/fluig/infra/local/models/FluigUserModel';
 
-describe('Unit test - CreateTasksForWorkflowService', () => {
+describe('Unit test - CreateFluigWorkflowService', () => {
   let service: CreateFluigTasksService;
   let repository: FluigUserRepository;
 
   beforeAll(async () => {
+    container.register<IFluigUserModel[]>('FluigUserModel', {
+      useValue: [],
+    });
+
     const axios = await authorizeUserAxiosFluigTester();
     container.registerInstance(Axios, axios);
     service = container.resolve(CreateFluigTasksService);

@@ -6,7 +6,6 @@ import axios, {
   AxiosRequestHeaders,
 } from 'axios';
 import ContainerManagerHelper from '@helpers/ContainerManagerHelper';
-import * as https from 'https';
 
 type OptionAxiosInstance = {
   baseURL: string;
@@ -40,7 +39,7 @@ export default class AxiosFacade extends ContainerManagerHelper {
         ...this.axiosConfig.headers,
       },
       // TODO: "Error: unable to get local issuer certificate" when true or remove httpsAgent
-      httpsAgent: new https.Agent({ rejectUnauthorized: false }),
+      // httpsAgent: new https.Agent({ rejectUnauthorized: false }),
     });
 
     if (options.instanceId)

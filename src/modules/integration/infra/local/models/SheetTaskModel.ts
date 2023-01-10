@@ -17,6 +17,7 @@ export interface ISheetTask extends IMetadata {
   oMOPCod: string;
   startDateTime: Date;
   endDateTime: Date;
+  timer: string;
   description: string;
 }
 
@@ -38,6 +39,9 @@ export default class SheetTaskModel extends Metadata implements ISheetTask {
 
   @Expose({ name: 'Fim' })
   endDateTime: Date;
+
+  @Expose({ name: 'Tempo' })
+  timer: string;
 
   @Expose({ name: 'Descrição' })
   description: string;

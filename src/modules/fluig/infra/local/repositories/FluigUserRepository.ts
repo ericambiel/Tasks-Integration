@@ -7,12 +7,6 @@ import { inject, singleton } from 'tsyringe';
 
 @singleton()
 export default class FluigUserRepository implements IFluigUserRepository {
-  /** Array with registered Fluig users to this API */
-  // private fluigUsers: IFluigUserModel[];
-  // constructor() {
-  //   this.fluigUsers = [];
-  // }
-
   constructor(
     /** Array with registered Fluig users to this API */
     @inject('FluigUserModel')

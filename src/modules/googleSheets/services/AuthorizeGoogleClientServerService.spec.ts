@@ -2,12 +2,13 @@ import 'reflect-metadata';
 import { container } from 'tsyringe';
 import { GoogleClientCredentialType } from '@shared/facades/GoogleAPIFacade';
 
-import { Credentials } from 'google-auth-library';
-import { sleep } from '@shared/helpers/smallHelper';
 import AuthorizeUserToClientGoogleServerService from './AuthorizeUserToClientGoogleServerService';
 import { IGoogleClientRepository } from '../infra/local/repositories/IGoogleClientRepository';
 import GoogleClientRepository from '../infra/local/repositories/GoogleClientRepository';
-import { IGoogleUserRepository } from '../infra/local/repositories/IGoogleUserRepository';
+import {
+  IGoogleUserRepository,
+  UserTokenInfoType,
+} from '../infra/local/repositories/IGoogleUserRepository';
 import GoogleUserRepository from '../infra/local/repositories/GoogleUserRepository';
 
 describe('Unit test - AuthorizeGoogleUserService.ts', () => {
@@ -17,18 +18,21 @@ describe('Unit test - AuthorizeGoogleUserService.ts', () => {
   // const regex = new RegExp(expression);
 
   let clientsCredential: GoogleClientCredentialType[];
-  let usersToken: Credentials[];
+  let usersToken: UserTokenInfoType[];
 
   let repositoryClient: IGoogleClientRepository;
   let repositoryUser: IGoogleUserRepository;
   let serviceAuth: AuthorizeUserToClientGoogleServerService;
 
   beforeAll(() => {
-    container.register<string>('clientCredentialFilePath', {
-      useValue: 'src/misc/clients',
-    });
-    container.register<string>('tokensPath', {
-      useValue: 'src/misc/tokens',
+    container.register<GoogleClientCredentialType[]>(
+      'GoogleClientCredentialType',
+      {
+        useValue: [],
+      },
+    );
+    container.register<UserTokenInfoType[]>('UserTokenInfoType', {
+      useValue: [],
     });
 
     repositoryClient = container.resolve<IGoogleClientRepository>(
@@ -41,26 +45,26 @@ describe('Unit test - AuthorizeGoogleUserService.ts', () => {
   });
 
   beforeEach(async () => {
-    await sleep(50);
-
+    await repositoryClient.loadCredentialsFromDisk();
+    await repositoryUser.loadTokensFromDisk();
     clientsCredential = repositoryClient.list();
     usersToken = repositoryUser.list();
   });
 
-  it('Should be possible authorize a client to access a Google User contents', async () => {
+  it('Should be possible authorize a client to access a Google User contents.', async () => {
     await serviceAuth.execute({
       clientId: clientsCredential[0].web.client_id,
-      userToken: usersToken[0],
+      userSUB: usersToken[0].user_information.sub,
     });
   });
 
-  it('Should be possible catch url authorization for Google User if stored token is wrong', async () => {
+  it('Should be possible catch url authorization for Google User if stored token is wrong.', async () => {
     usersToken[0].refresh_token = undefined;
 
     const asyncFunc = () =>
       serviceAuth.execute({
         clientId: clientsCredential[0].web.client_id,
-        userToken: usersToken[0],
+        userSUB: usersToken[0].user_information.sub,
       });
 
     // Match if uRL is a URL

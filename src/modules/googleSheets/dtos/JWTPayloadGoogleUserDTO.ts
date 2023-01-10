@@ -1,14 +1,11 @@
-export type JWTPayloadGoogleUserDTO = {
-  iss: string;
+import { JWTPayloadClaims } from '@shared/helpers/smallHelper';
+
+export type JWTPayloadGoogleUserDTO = JWTPayloadClaims & {
   azp: string;
-  aud: string;
-  sub: string;
   at_hash: string;
   name: string;
   picture: string;
   given_name: string;
   family_name: string;
   locale: string;
-  iat: number;
-  exp: number;
 };

@@ -12,7 +12,7 @@ import GoogleClientRepository from '@modules/googleSheets/infra/local/repositori
 import ConsoleLog from '@libs/ConsoleLog';
 import { plainToInstance } from 'class-transformer';
 import RegisterUserService from '@modules/fluig/services/RegisterUserService';
-import CredentialsFluigUserService from '@modules/fluig/services/CredentialsFluigUserService';
+import GetAuthorizationFluigUserService from '@modules/fluig/services/GetAuthorizationFluigUserService';
 import { FluigUserModel } from '@modules/fluig/infra/local/models/FluigUserModel';
 import GoogleUserInformationModel from '@modules/googleSheets/infra/local/models/GoogleUserInformationModel';
 import UpdateFluigUserWithDetailsService from '@modules/fluig/services/UpdateFluigUserWithDetailsService';
@@ -46,8 +46,8 @@ export default class RegisterNewConnectionsService {
     private getWorksheetDetailsService: GetWorkbookDetailsService,
     @inject(RegisterUserService)
     private registerUserService: RegisterUserService,
-    @inject(CredentialsFluigUserService)
-    private credentialsFluigUserService: CredentialsFluigUserService,
+    @inject(GetAuthorizationFluigUserService)
+    private credentialsFluigUserService: GetAuthorizationFluigUserService,
     @inject(UpdateFluigUserWithDetailsService)
     private updateFluigUserWithDetails: UpdateFluigUserWithDetailsService,
   ) {}

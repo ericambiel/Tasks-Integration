@@ -3,17 +3,11 @@ import { injectable } from 'tsyringe';
 import FluigUserInfoModel, {
   IFluigUserInfoModel,
 } from '@modules/fluig/infra/local/models/FluigUserInfoModel';
+import { JWTFluigPayload } from '@modules/fluig/services/GetAuthorizationFluigUserService';
+import { JWTPayloadClaims } from '@shared/helpers/smallHelper';
 
-export interface IFluigUserModel {
-  sub: string;
-  role: string;
-  tenant: number;
-  userTenantId: number;
-  userType: number;
-  userUUID: string;
-  tenantUUID: string;
-  lastUpdateDate: number;
-  userTimeZone: string;
+export interface IFluigUserModel extends JWTFluigPayload {
+  sub: JWTPayloadClaims['sub'];
   userInfo?: IFluigUserInfoModel;
 }
 

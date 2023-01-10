@@ -9,7 +9,6 @@ import {
   UserTokenInfoType,
 } from '@modules/googleSheets/infra/local/repositories/IGoogleUserRepository';
 import GoogleUserRepository from '@modules/googleSheets/infra/local/repositories/GoogleUserRepository';
-import googleApi from '@config/googleApi';
 import { IGoogleClientRepository } from '@modules/googleSheets/infra/local/repositories/IGoogleClientRepository';
 import GoogleClientRepository from '@modules/googleSheets/infra/local/repositories/GoogleClientRepository';
 import RegisterNewConnectionsService from '@modules/integration/services/RegisterNewConnectionsService';
@@ -18,6 +17,7 @@ import IntegrationController from '@modules/integration/infra/http/controller/In
 import { api } from '@configs/*';
 import { IFluigUserModel } from '@modules/fluig/infra/local/models/FluigUserModel';
 import { IntegrationConnType } from '@modules/integration/infra/local/repositories/IIntegrationRepository';
+import { GoogleClientCredentialType } from '@shared/facades/GoogleAPIFacade';
 // import startExpressServer from './vendor/app';
 
 // Load Environments from .env
@@ -34,51 +34,54 @@ async function startFluigModule() {
 }
 
 async function startGoogleModule() {
-  const GOOGLE_API_CONF = googleApi();
-
   // TODO: Leave all this to controller
-  container.register<string>('clientCredentialFilePath', {
-    useValue: GOOGLE_API_CONF.CLIENTS_PATH,
-  });
+  // const GOOGLE_API_CONF = googleApi();
+  // container.register<string>('clientCredentialFilePath', {
+  //   useValue: GOOGLE_API_CONF.CLIENTS_PATH,
+  // });
+  //
+  // container.register<string>('tokensPath', {
+  //   useValue: GOOGLE_API_CONF.TOKENS_PATH,
+  // });
 
-  container.register<string>('tokensPath', {
-    useValue: GOOGLE_API_CONF.TOKENS_PATH,
+  // If injecting populated lists, do not use the loading functions.
+  container.register<GoogleClientCredentialType[]>(
+    'GoogleClientCredentialType',
+    {
+      useValue: [],
+    },
+  );
+  container.register<UserTokenInfoType[]>('UserTokenInfoType', {
+    useValue: [],
   });
 
   container.register<IFluigUserModel[]>('FluigUserModel', {
     useValue: [],
   });
 
-  container.register<UserTokenInfoType[]>('UserTokenInfoType', {
-    useValue: [],
-  });
-
   const repositoryClient = container.resolve<IGoogleClientRepository>(
     GoogleClientRepository,
   );
-
   const repositoryUser =
     container.resolve<IGoogleUserRepository>(GoogleUserRepository);
 
-  const events: Promise<void>[] = [];
+  // Load Tokens/Credentials form disk
+  await repositoryClient.loadCredentialsFromDisk();
+  await repositoryUser.loadTokensFromDisk();
 
-  events.push(
-    new Promise(resolve => {
-      repositoryClient.once('loadedClientsCredentialFiles', () => resolve());
-    }),
-    new Promise(resolve => {
-      repositoryUser.once('loadedUsersTokenFiles', () => resolve());
-    }),
-  );
-
+  // const events: Promise<void>[] = [];
+  //
   // events.push(
+  //   new Promise(resolve => {
+  //     repositoryClient.once('loadedClientsCredentialFiles', () => resolve());
+  //   }),
   //   new Promise(resolve => {
   //     repositoryUser.once('loadedUsersTokenFiles', () => resolve());
   //   }),
   // );
-
-  //  Waiting for all needed events
-  await Promise.all(events);
+  //
+  // //  Waiting for all needed events
+  // await Promise.all(events);
 
   // const serviceAuth = container.resolve(AuthorizeUserToClientGoogleServer);
   // const usersToken = repositoryUser.list();
@@ -132,7 +135,7 @@ export default async function main() {
 }
 
 main()
-  .then(() => ConsoleLog.print('Ended start server...', 'info', 'SERVER'))
+  .then(() => ConsoleLog.print('Server initialized :)', 'info', 'SERVER'))
   .catch(err => {
     throw ConsoleLog.print(<Error>err, 'error', 'SERVER');
   });

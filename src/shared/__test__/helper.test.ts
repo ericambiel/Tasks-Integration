@@ -2,7 +2,9 @@ import { container } from 'tsyringe';
 import AxiosFacade from '@shared/facades/AxiosFacade';
 import { IFluigUserRepository } from '@modules/fluig/infra/local/repositories/IFluigUserRepository';
 import FluigUserRepository from '@modules/fluig/infra/local/repositories/FluigUserRepository';
-import CredentialsFluigUserService from '@modules/fluig/services/CredentialsFluigUserService';
+import GetAuthorizationFluigUserService, {
+  FluigCredentialsType,
+} from '@modules/fluig/services/GetAuthorizationFluigUserService';
 import { Axios } from 'axios';
 import {
   FluigUserModel,
@@ -12,7 +14,11 @@ import { plainToInstance } from 'class-transformer';
 import RegisterUserService from '@modules/fluig/services/RegisterUserService';
 import GetUserInformationService from '@modules/fluig/services/GetUserInformationService';
 
-function treatReqResAxiosTester(axios: Axios) {
+/**
+ * Usefull to format requests and requisitions
+ * @param axios
+ */
+export function formatReqResAxiosTester(axios: Axios) {
   axios.interceptors.request.use(req => {
     const headers = {
       // @ts-ignore
@@ -52,45 +58,32 @@ function treatReqResAxiosTester(axios: Axios) {
   });
 }
 
-export function registerAxiosCleanInstanceFluigTester() {
-  return container.resolve(AxiosFacade).axiosFactor({
-    baseURL: process.env.FLUIG_BASEURL ?? '',
-    Origin: process.env.FLUIG_ORIGIN ?? '',
-    // instanceId: 'axiosCleanInstanceFluig',
-  });
-}
-
-export async function authorizeUserAxiosFluigTester() {
-  // Create clean instance Axios
-  const cleanAxios = registerAxiosCleanInstanceFluigTester();
-
-  // Register instance to be used in FluigAPIHelper
-  container.registerInstance(Axios, cleanAxios);
-
+/**
+ * Authorize .env test user on Axios instance and register then
+ * in repository
+ */
+export async function authorizeUserAxiosFluigTester(isAxiosDebug?: boolean) {
   // Autorize Fluig User
-  const authorization = await container
-    .resolve(CredentialsFluigUserService)
+  const { headers, jWTPayload }: FluigCredentialsType = await container
+    .resolve(GetAuthorizationFluigUserService)
     .execute(
-      process.env.FLUIG_USERNAME ?? '',
-      process.env.FLUIG_PASSWORD ?? '',
+      process.env.TEST_FLUIG_USERNAME ?? '',
+      process.env.TEST_FLUIG_PASSWORD ?? '',
     );
 
   // Converte Bear JTW to user model
   const fluigUser: IFluigUserModel = plainToInstance(
     FluigUserModel,
-    authorization,
+    jWTPayload,
   );
+
+  // Register User service
+  container.resolve(RegisterUserService).execute(fluigUser, headers);
 
   // Get more information about User
   fluigUser.userInfo = await container
     .resolve(GetUserInformationService)
-    .execute(fluigUser.sub);
-
-  // Register User in the system (Repository and Axios)
-  // container.register<IFluigUserModel[]>('IFluigUserModel', {
-  //   useValue: [],
-  // });
-  container.resolve(RegisterUserService).execute(fluigUser);
+    .execute(fluigUser.userUUID, fluigUser.sub);
 
   // Get repository from users registered
   const repository =
@@ -99,12 +92,12 @@ export async function authorizeUserAxiosFluigTester() {
   // List all users Registered
   const registeredUsers = repository.list();
 
-  // Gtet Axios insance with authorized fluig user
+  // Get Axios instance with authorized fluig user
   const axiosAuthorizedClient = container
     .resolve(AxiosFacade)
     .container.resolve<Axios>(registeredUsers[0].userUUID);
 
-  treatReqResAxiosTester(axiosAuthorizedClient);
+  if (isAxiosDebug) formatReqResAxiosTester(axiosAuthorizedClient);
 
   return axiosAuthorizedClient;
 }

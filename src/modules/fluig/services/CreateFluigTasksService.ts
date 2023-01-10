@@ -106,7 +106,7 @@ export default class CreateFluigTasksService
       },
       {
         name: 'solicitante',
-        value: options.user.userInfo.userName,
+        value: options.user.userInfo!.userName, // TODO: Verify how to fix this
       },
       {
         name: 'txtMatriculaSolicitante',

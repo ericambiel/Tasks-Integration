@@ -232,7 +232,7 @@ export default class GoogleAPIFacade extends ContainerManagerHelper {
 
     // TODO: Verify with celebrate if given generic type is correct transformed
     return arrayArrayToObjArrayHead<T>(worksheet, {
-      undefinedTo: null,
+      undefinedTo: '',
     });
   }
 
